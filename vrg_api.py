@@ -1,9 +1,10 @@
 
 import pyvisa
 
+
 class VRG:
     def __init__(self, resource_name): # probably set the resource name in .ini file
-        self.rm = pyvisa.ResourceManager()
+        self.rm = pyvisa.ResourceManager('@py')
         self.instrument = self.rm.open_resource(resource_name)
     
     def query_command(self, command):

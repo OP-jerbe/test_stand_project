@@ -27,8 +27,6 @@ def main():
     freq_end = rfg.get_frequency()
     power_end = rfg.get_power_setting()
     
-    print(ping,freq_start,power_start,freq_end,power_end)
-    
     
     # close the connection
     rfg.close()

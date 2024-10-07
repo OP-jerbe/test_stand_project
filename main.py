@@ -1,50 +1,38 @@
-
-import ammeter_control as amm
-import pressure_gauge_control as pg
-import rfgenerator_control as rfg
+from rfgenerator_control import RFGenerator
+import configparser
 
 
-# create an rf class
-rf = rfg.RFGenerator()
-print(f'RF Generator type: {rf.product}')
+def load_config(file_name):
+    config = configparser.ConfigParser()
+    config.read(file_name)
+    com_port = config.get('RFGenerator', 'COMPort')
+    return com_port
 
-rf.set_frequency(40.01)
-rf.set_power(800)
-
-frequency_var = rf.get_frequency()
-print(f'frequency_var = {frequency_var} MHz')
-
-power_setting_var = rf.get_power_setting()
-print(f'power_setting_var = {power_setting_var} W')
-
-forward_power_var = rf.get_forward_power()
-print(f'forward_power_var = {forward_power_var} W')
-
-refl_power_var = rf.get_refl_power()
-print(f'refl_power_var = {refl_power_var} W')
-
-
-
-rf.enable()
-
-forward_power_var = rf.get_forward_power()
-print(f'forward_power_var = {forward_power_var} W')
-
-refl_power_var = rf.get_refl_power()
-print(f'refl_power_var = {refl_power_var} W')
-
-absorbed_power_var = rf.get_absorbed_power()
-print(f'absorbed_power_var = {absorbed_power_var} W')
-
+def main():
+    # Load the COM Port from the ini file
+    ini_file = 'hyperionTestStandControl.ini'
+    com_port = load_config(ini_file)
+    
+    vrg_resource = f'ASRL{com_port}::INSTR'
+    
+    resource_name = vrg_resource # set this with ini file???
+    rfg = RFGenerator(resource_name)
+    
+    # Ping the VRG to see if it's talking
+    ping = rfg.ping_device()
+    freq_start = rfg.get_frequency()
+    power_start = rfg.get_power_setting()
+    rfg.set_frequency(40.65)
+    rfg.set_power(800)
+    freq_end = rfg.get_frequency()
+    power_end = rfg.get_power_setting()
+    
+    print(ping,freq_start,power_start,freq_end,power_end)
+    
+    
+    # close the connection
+    rfg.close()
 
 
-rf.disable()
-
-forward_power_var = rf.get_forward_power()
-print(f'forward_power_var = {forward_power_var} W')
-
-refl_power_var = rf.get_refl_power()
-print(f'refl_power_var = {refl_power_var} W')
-
-absorbed_power_var = rf.get_absorbed_power()
-print(f'absorbed_power_var = {absorbed_power_var} W')
+if __name__ == '__main__':
+    main()

@@ -12,10 +12,13 @@ class MainWindow(QMainWindow):
     def __init__(self):
         super().__init__()
 
-        self.ini_file = 'hyperionTestStandControl.ini'
-        self.rfg_com_port = load_config(self.ini_file, 'RFGenerator')
-        self.resource_name = f'ASRL{self.rfg_com_port}::INSTR'
-        self.rfg = RFGenerator(self.resource_name)
+        self.simulate = True
+
+        if not self.simulate:
+            self.ini_file = 'hyperionTestStandControl.ini'
+            self.rfg_com_port = load_config(self.ini_file, 'RFGenerator')
+            self.resource_name = f'ASRL{self.rfg_com_port}::INSTR'
+            self.rfg = RFGenerator(self.resource_name)
 
         self.setWindowTitle("VRG Control")
         self.setWindowIcon(QIcon('./vrg_icon.ico'))
@@ -109,16 +112,34 @@ class MainWindow(QMainWindow):
             )
         )
         
+        self.freq_setting_input.focusInEvent = self.clear_text
+        self.freq_setting_input.focusOutEvent = self.restore_text_if_empty
 
+        self.power_setting_input.focusInEvent = self.clear_text
+        self.power_setting_input.focusOutEvent = self.restore_text_if_empty
+
+    def clear_text(self, event, input_line:QLineEdit):
+        # Clear the text when the line eit gains focus
+        self.last_input = self.input_line.text()
+        self.input_line.clear()
+        super().focusInEvent()
+    
+    def restore_text_if_empty(self, event, input_line:QLineEdit):
+        # Restore the last input if the current text is empty
+        if self.input_line.text() == '':
+            self.input_line.setText(self.last_input)
+        super().focusOutEvent(event)
 
 
     def on_toggle(self, state):
         if state == 2: # checked
             print('Toggle Switch: ON') # replace this with command to enable
-            self.rfg.enable()
+            if not self.simulate:
+                self.rfg.enable()
         else: # unchecked
             print('Toggle Switch: OFF') # replace this with command to disable
-            self.rfg.disable()
+            if not self.simulate
+                self.rfg.disable()
     
     def update_setting(self, input_line:QLineEdit, label:QLabel, param:str, unit:str):
         entered_text = input_line.text() # Get text from QLineEdit
@@ -126,12 +147,14 @@ class MainWindow(QMainWindow):
             num = float(entered_text)
             num_as_str = f'{num:.2f}'
             label.setText(f'{param} = {num_as_str} {unit}') # Set text to QLabel
-            self.rfg.set_frequency(num)
+            if not self.simulate
+                self.rfg.set_frequency(num)
         elif param == 'Power':
             num = float(entered_text)
             num_as_str = f'{int(num)}'
             label.setText(f'{param} = {num_as_str} {unit}') # Set text to QLabel
-            self.rfg.set_power(int(num))
+            if not self.simulate
+                self.rfg.set_power(int(num))
         else:
             pass
 

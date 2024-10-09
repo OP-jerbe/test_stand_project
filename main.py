@@ -12,9 +12,9 @@ class MainWindow(QMainWindow):
     def __init__(self):
         super().__init__()
 
-        self.simulate = True
+        self.simulation = True
 
-        if not self.simulate:
+        if not self.simulation:
             self.ini_file = 'hyperionTestStandControl.ini'
             self.rfg_com_port = load_config(self.ini_file, 'RFGenerator')
             self.resource_name = f'ASRL{self.rfg_com_port}::INSTR'
@@ -134,11 +134,11 @@ class MainWindow(QMainWindow):
     def on_toggle(self, state):
         if state == 2: # checked
             print('Toggle Switch: ON') # replace this with command to enable
-            if not self.simulate:
+            if not self.simulation:
                 self.rfg.enable()
         else: # unchecked
             print('Toggle Switch: OFF') # replace this with command to disable
-            if not self.simulate
+            if not self.simulation
                 self.rfg.disable()
     
     def update_setting(self, input_line:QLineEdit, label:QLabel, param:str, unit:str):
@@ -147,13 +147,13 @@ class MainWindow(QMainWindow):
             num = float(entered_text)
             num_as_str = f'{num:.2f}'
             label.setText(f'{param} = {num_as_str} {unit}') # Set text to QLabel
-            if not self.simulate
+            if not self.simulation
                 self.rfg.set_frequency(num)
         elif param == 'Power':
             num = float(entered_text)
             num_as_str = f'{int(num)}'
             label.setText(f'{param} = {num_as_str} {unit}') # Set text to QLabel
-            if not self.simulate
+            if not self.simulation
                 self.rfg.set_power(int(num))
         else:
             pass

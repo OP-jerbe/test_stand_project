@@ -22,15 +22,16 @@ class CustomLineEdit(QLineEdit):
 
     def focusOutEvent(self, event):
         if self.text() == '':
+            print('restored last input')
             self.setText(self.last_input)  # Restore the last input if empty
-        elif self.name == 'freq':
+        elif self.text() != '' and self.name == 'freq':
             self.main_window.update_setting(
                 input_line=self.main_window.freq_setting_input,
                 label=self.main_window.freq_setting_label,
                 param='Frequency',
                 unit='MHz'
             )
-        elif self.name == 'power':
+        elif self.text() != '' and self.name == 'power':
             self.main_window.update_setting(
                 input_line=self.main_window.power_setting_input,
                 label=self.main_window.power_setting_label,
@@ -49,7 +50,7 @@ class MainWindow(QMainWindow):
     def __init__(self):
         super().__init__()
 
-        self.simulation = True
+        self.simulation = False
 
         # Install event filter to capture all mouse clicks
         self.installEventFilter(self)
@@ -95,14 +96,20 @@ class MainWindow(QMainWindow):
         
         # Frequency setting
         self.top_freq_label = QLabel('Frequency (MHz)')
-        self.freq_setting_label = QLabel('Frequency = 00.00 MHz')
+        if not self.simulation:
+            self.freq_setting_label = QLabel(f'Frequency = {self.rfg.get_frequency():.2f} MHz')
+        else:
+            self.freq_setting_label = QLabel('Frequency = 00.00 MHz')
         self.freq_setting_input = CustomLineEdit(name='freq', main_window=self)
         self.freq_setting_input.setMaxLength(5)
         self.freq_setting_input.setPlaceholderText('Input Frequency Setting')
         
         # Power setting
         self.top_power_label = QLabel('Power (W)')
-        self.power_setting_label = QLabel('Power = 0 W')
+        if not self.simulation:
+            self.power_setting_label = QLabel(f'Power = {self.rfg.get_power_setting()} W')
+        else:
+            self.power_setting_label = QLabel('Power = 0 W')
         self.power_setting_input = CustomLineEdit(name='power', main_window=self)
         self.power_setting_input.setMaxLength(4)
         self.power_setting_input.setPlaceholderText('Input Power Setting')
@@ -171,17 +178,8 @@ class MainWindow(QMainWindow):
     def eventFilter(self, source, event):
         # Capture all mouse button press events
         if event.type() == QEvent.MouseButtonPress:
-            print('Clicked')  # Debug: print when a mouse click is registered
-            
-            # Get the currently focused widget
-            focused_widget = QApplication.focusWidget()
-
-            # Check if the focused widget is a CustomLineEdit
-            if isinstance(focused_widget, CustomLineEdit):
-                if focused_widget.text() == '':  # if entry is blank
-                    focused_widget.restore_text()  # restore the previous text
-                focused_widget.clearFocus()  # clear focus from the current QLineEdit
-            
+            focused_widget = QApplication.focusWidget() # Get the currently focused widget
+            focused_widget.clearFocus()  # clear focus from the current QLineEdit
         return super().eventFilter(source, event)
 
 
@@ -207,7 +205,7 @@ class MainWindow(QMainWindow):
                 input_line.setText(num_as_str)
                 self.rfg.set_frequency(num) # tell RF generator to set the frequency to num
                 freq = self.rfg.get_frequency() # ask RF generator what it's frequency setting is
-                label.setText(f'{param} = {freq} {unit}')
+                label.setText(f'{param} = {freq:.2f} {unit}')
             elif param == 'Power':
                 num_as_str = f'{int(num)}'
                 input_line.setText(num_as_str)
@@ -227,12 +225,9 @@ class MainWindow(QMainWindow):
     def autotune_clicked(self):
         if not self.simulation:
             self.rfg.auto_tune()
-            self.update_setting(
-                input_line=self.freq_setting_input,
-                label=self.freq_setting_label,
-                param='Frequency',
-                unit='MHz'
-            )
+            new_freq = self.rfg.get_frequency()
+            self.freq_setting_input.setText(f'{new_freq}')
+            self.freq_setting_label.setText(f'Frequency = {new_freq:.2f} MHz')
         print('Autotuned!')
 
         

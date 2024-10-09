@@ -1,12 +1,49 @@
 import sys
 from rfgenerator_control import RFGenerator
 from ini_reader import load_config
-import configparser
-from PySide6.QtCore import QSize, Qt
-from PySide6.QtGui import QIcon
+from PySide6.QtCore import Qt, QEvent
+from PySide6.QtGui import QIcon, QMouseEvent
 from PySide6.QtWidgets import QApplication, QMainWindow, QWidget
-from PySide6.QtWidgets import QCheckBox, QLineEdit, QLabel
+from PySide6.QtWidgets import QCheckBox, QLineEdit, QLabel, QPushButton
 from PySide6.QtWidgets import QHBoxLayout, QVBoxLayout
+
+
+class CustomLineEdit(QLineEdit):
+    def __init__(self, name:str, main_window, *args, **kwargs):
+        super().__init__(*args, **kwargs)
+        self.main_window = main_window
+        self.name = name
+        self.last_input = self.text()  # Store the last input
+
+    def focusInEvent(self, event):
+        self.last_input = self.text()  # Store the current text when focused
+        super().focusInEvent(event)  # Call the base class method
+        self.clear()  # Clear the text
+
+    def focusOutEvent(self, event):
+        if self.text() == '':
+            self.setText(self.last_input)  # Restore the last input if empty
+        elif self.name == 'freq':
+            self.main_window.update_setting(
+                input_line=self.main_window.freq_setting_input,
+                label=self.main_window.freq_setting_label,
+                param='Frequency',
+                unit='MHz'
+            )
+        elif self.name == 'power':
+            self.main_window.update_setting(
+                input_line=self.main_window.power_setting_input,
+                label=self.main_window.power_setting_label,
+                param='Power',
+                unit='W'
+            )
+        super().focusOutEvent(event)  # Call the base class method
+    
+    def restore_text(self):
+        if self.text() == '':
+            self.setText(self.last_input)
+
+
 
 class MainWindow(QMainWindow):
     def __init__(self):
@@ -14,28 +51,33 @@ class MainWindow(QMainWindow):
 
         self.simulation = True
 
+        # Install event filter to capture all mouse clicks
+        self.installEventFilter(self)
+
         if not self.simulation:
             self.ini_file = 'hyperionTestStandControl.ini'
             self.rfg_com_port = load_config(self.ini_file, 'RFGenerator')
             self.resource_name = f'ASRL{self.rfg_com_port}::INSTR'
             self.rfg = RFGenerator(self.resource_name)
 
-        self.setWindowTitle("VRG Control")
+        if not self.simulation:
+            self.setWindowTitle("VRG Control")
+        else:
+            self.setWindowTitle('VRG Control - (simulation)')
         self.setWindowIcon(QIcon('./vrg_icon.ico'))
         
         # Enable switch
-        self.toggle_switch_label = QLabel('Enable RF', self)
-        self.toggle_switch_label.setAlignment(Qt.AlignmentFlag.AlignCenter)
-        self.toggle_switch = QCheckBox("Enable", self)
-        self.toggle_switch.setChecked(False)
-        self.toggle_switch.stateChanged.connect(self.on_toggle)
-        self.toggle_switch.setStyleSheet("""
+        self.enable_switch = QCheckBox('Enable RF', self)
+        self.enable_switch.setChecked(False)
+        self.enable_switch.stateChanged.connect(self.on_toggle)
+        self.enable_switch.setStyleSheet("""
             QCheckBox {
-                width: 50px;
+                width: 75px;
                 height: 20px;
                 border: 2px solid #999999;
                 border-radius: 10px;
                 background: #e0e0e0;
+                text-align: center;
             }
             QCheckBox:checked {
                 background: #76b041;
@@ -52,23 +94,26 @@ class MainWindow(QMainWindow):
         """)
         
         # Frequency setting
-        self.top_freq_label = QLabel('Frequency (MHz)', self)
-        self.freq_setting_label = QLabel('Frequency = 00.00 MHz', self)
-        self.freq_setting_input = QLineEdit(self)
+        self.top_freq_label = QLabel('Frequency (MHz)')
+        self.freq_setting_label = QLabel('Frequency = 00.00 MHz')
+        self.freq_setting_input = CustomLineEdit(name='freq', main_window=self)
         self.freq_setting_input.setMaxLength(5)
         self.freq_setting_input.setPlaceholderText('Input Frequency Setting')
         
         # Power setting
-        self.top_power_label = QLabel('Power (W)', self)
-        self.power_setting_label = QLabel('Power = 0 W', self)
-        self.power_setting_input = QLineEdit(self)
+        self.top_power_label = QLabel('Power (W)')
+        self.power_setting_label = QLabel('Power = 0 W')
+        self.power_setting_input = CustomLineEdit(name='power', main_window=self)
         self.power_setting_input.setMaxLength(4)
         self.power_setting_input.setPlaceholderText('Input Power Setting')
         
+        # Auto tune
+        self.autotune_button = QPushButton('Autotune')
+
         # Set up layout
-        toggle_switch_layout = QVBoxLayout()
-        toggle_switch_layout.addWidget(self.toggle_switch_label)
-        toggle_switch_layout.addWidget(self.toggle_switch)
+        es_and_at_layout = QVBoxLayout()
+        es_and_at_layout.addWidget(self.enable_switch)
+        es_and_at_layout.addWidget(self.autotune_button)
         
         freq_layout = QVBoxLayout()
         freq_layout.addWidget(self.top_freq_label)
@@ -83,7 +128,7 @@ class MainWindow(QMainWindow):
         power_layout.setContentsMargins(10, 3, 10, 3)
 
         main_layout = QHBoxLayout()
-        main_layout.addLayout(toggle_switch_layout)
+        main_layout.addLayout(es_and_at_layout)
         main_layout.addLayout(freq_layout)
         main_layout.addLayout(power_layout)
         main_layout.setContentsMargins(10, 10, 10, 10) # Set margins (left, top, right, bottom)
@@ -97,38 +142,47 @@ class MainWindow(QMainWindow):
         # Connect QLineEdit's returnPressed signal to the update_label method with arguments
         # A lambda function is required since arguments must be passed to the update_label method
         self.freq_setting_input.returnPressed.connect(
-            lambda: self.update_setting(self.freq_setting_input,
-                                      self.freq_setting_label,
-                                      param='Frequency',
-                                      unit='MHz'
-            )
+            lambda: [
+                # self.update_setting(
+                #     self.freq_setting_input,
+                #     self.freq_setting_label,
+                #     param='Frequency',
+                #     unit='MHz'
+                # ),
+                self.freq_setting_input.clearFocus()
+            ]
         )
 
         self.power_setting_input.returnPressed.connect(
-            lambda: self.update_setting(self.power_setting_input,
-                                      self.power_setting_label,
-                                      param='Power',
-                                      unit='W'
-            )
+            lambda: [
+                # self.update_setting(
+                #     self.power_setting_input,
+                #     self.power_setting_label,
+                #     param='Power',
+                #     unit='W'
+                # ),
+                self.power_setting_input.clearFocus()
+            ]
         )
-        
-        self.freq_setting_input.focusInEvent = self.clear_text
-        self.freq_setting_input.focusOutEvent = self.restore_text_if_empty
 
-        self.power_setting_input.focusInEvent = self.clear_text
-        self.power_setting_input.focusOutEvent = self.restore_text_if_empty
+        self.autotune_button.clicked.connect(self.autotune_clicked)
 
-    def clear_text(self, event, input_line:QLineEdit):
-        # Clear the text when the line eit gains focus
-        self.last_input = self.input_line.text()
-        self.input_line.clear()
-        super().focusInEvent()
-    
-    def restore_text_if_empty(self, event, input_line:QLineEdit):
-        # Restore the last input if the current text is empty
-        if self.input_line.text() == '':
-            self.input_line.setText(self.last_input)
-        super().focusOutEvent(event)
+
+    def eventFilter(self, source, event):
+        # Capture all mouse button press events
+        if event.type() == QEvent.MouseButtonPress:
+            print('Clicked')  # Debug: print when a mouse click is registered
+            
+            # Get the currently focused widget
+            focused_widget = QApplication.focusWidget()
+
+            # Check if the focused widget is a CustomLineEdit
+            if isinstance(focused_widget, CustomLineEdit):
+                if focused_widget.text() == '':  # if entry is blank
+                    focused_widget.restore_text()  # restore the previous text
+                focused_widget.clearFocus()  # clear focus from the current QLineEdit
+            
+        return super().eventFilter(source, event)
 
 
     def on_toggle(self, state):
@@ -138,25 +192,48 @@ class MainWindow(QMainWindow):
                 self.rfg.enable()
         else: # unchecked
             print('Toggle Switch: OFF') # replace this with command to disable
-            if not self.simulation
+            if not self.simulation:
                 self.rfg.disable()
-    
-    def update_setting(self, input_line:QLineEdit, label:QLabel, param:str, unit:str):
-        entered_text = input_line.text() # Get text from QLineEdit
-        if param == 'Frequency':
-            num = float(entered_text)
-            num_as_str = f'{num:.2f}'
-            label.setText(f'{param} = {num_as_str} {unit}') # Set text to QLabel
-            if not self.simulation
-                self.rfg.set_frequency(num)
-        elif param == 'Power':
-            num = float(entered_text)
-            num_as_str = f'{int(num)}'
-            label.setText(f'{param} = {num_as_str} {unit}') # Set text to QLabel
-            if not self.simulation
-                self.rfg.set_power(int(num))
+
+
+    def update_setting(self, input_line:CustomLineEdit, label:QLabel, param:str, unit:str):
+        entered_text = input_line.text() # Get text from CustomLineEdit
+        num = float(entered_text)
+
+        if not self.simulation:
+            # Code to run if connected to RF generator
+            if param == 'Frequency':
+                num_as_str = f'{num:.2f}'
+                input_line.setText(num_as_str)
+                self.rfg.set_frequency(num) # tell RF generator to set the frequency to num
+                freq = self.rfg.get_frequency() # ask RF generator what it's frequency setting is
+                label.setText(f'{param} = {freq} {unit}')
+            elif param == 'Power':
+                num_as_str = f'{int(num)}'
+                input_line.setText(num_as_str)
+                self.rfg.set_power(int(num)) # tell RF generator to set the frequency to num
+                power = self.rfg.get_power_setting() # ask RF generator what it's frequency setting is
+                label.setText(f'{param} = {power} {unit}')
         else:
-            pass
+            # Code to run if in simulation mode
+            if param == 'Frequency':
+                num_as_str = f'{num:.2f}'
+            elif param == 'Power':
+                num_as_str = f'{int(num)}'
+            input_line.setText(num_as_str) # Set text of the input box
+            label.setText(f'{param} = {num_as_str} {unit}') # Set text to QLabel
+
+
+    def autotune_clicked(self):
+        if not self.simulation:
+            self.rfg.auto_tune()
+            self.update_setting(
+                input_line=self.freq_setting_input,
+                label=self.freq_setting_label,
+                param='Frequency',
+                unit='MHz'
+            )
+        print('Autotuned!')
 
         
 

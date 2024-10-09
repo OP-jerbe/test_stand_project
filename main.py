@@ -1,25 +1,24 @@
 import sys
 from rfgenerator_control import RFGenerator
+from ini_reader import load_config
 import configparser
 from PySide6.QtCore import QSize, Qt
-from PySide6.QtWidgets import QApplication, QMainWindow, QPushButton, QLabel, QCheckBox, QLineEdit, QHBoxLayout, QVBoxLayout, QWidget
-
-def load_config(file_name):
-     config = configparser.ConfigParser()
-     config.read(file_name)
-     rf_com_port = config.get('RFGenerator', 'COMPort')
-     return rf_com_port
+from PySide6.QtGui import QIcon
+from PySide6.QtWidgets import QApplication, QMainWindow, QWidget
+from PySide6.QtWidgets import QCheckBox, QLineEdit, QLabel
+from PySide6.QtWidgets import QHBoxLayout, QVBoxLayout
 
 class MainWindow(QMainWindow):
     def __init__(self):
         super().__init__()
 
         self.ini_file = 'hyperionTestStandControl.ini'
-        self.rfg_com_port = load_config(ini_file)
-        self.resource_name = f'ASRL{rfg_com_port}::INSTR'
+        self.rfg_com_port = load_config(self.ini_file, 'RFGenerator')
+        self.resource_name = f'ASRL{self.rfg_com_port}::INSTR'
         self.rfg = RFGenerator(self.resource_name)
 
         self.setWindowTitle("VRG Control")
+        self.setWindowIcon(QIcon('./vrg_icon.ico'))
         
         # Enable switch
         self.toggle_switch_label = QLabel('Enable RF', self)
@@ -118,7 +117,7 @@ class MainWindow(QMainWindow):
             print('Toggle Switch: ON') # replace this with command to enable
             self.rfg.enable()
         else: # unchecked
-            print('Toggle Swithc: OFF') # replace this with command to disable
+            print('Toggle Switch: OFF') # replace this with command to disable
             self.rfg.disable()
     
     def update_setting(self, input_line:QLineEdit, label:QLabel, param:str, unit:str):
@@ -139,8 +138,6 @@ class MainWindow(QMainWindow):
         
 
 if __name__ == '__main__':
-    ini_file = 'hyperionTestStandControl.ini'
-    rfg_com_port = load_config(ini_file)
     app = QApplication([])
     window = MainWindow()
     window.show()

@@ -30,12 +30,6 @@ class MainWindow(QMainWindow):
             #print(f'Exception: {e}')
             print('Could not connect to RF device. App in simulation mode.')
             self.simulation = True
-        
-        # if not self.simulation:
-        #     self.ini_file = 'hyperionTestStandControl.ini'
-        #     self.rfg_com_port = load_config(self.ini_file, 'RFGenerator')
-        #     self.resource_name = f'ASRL{self.rfg_com_port}::INSTR'
-        #     self.rfg = RFGenerator(self.resource_name)
 
         if not self.simulation:
             self.setWindowTitle("VRG Control")
@@ -135,7 +129,7 @@ class MainWindow(QMainWindow):
         if event.type() == QEvent.MouseButtonPress:
             focused_widget = QApplication.focusWidget() # Get the currently focused widget
             if focused_widget is not None:
-                focused_widget.clearFocus()  # clear focus from the current QLineEdit
+                focused_widget.clearFocus()  # clear focus from the current focused widget
         return super().eventFilter(source, event)
 
 

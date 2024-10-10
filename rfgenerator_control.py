@@ -1,5 +1,4 @@
 
-from vrg_api import VRG as device
 
 class RFGenerator():
     def __init__(self, resource_name, rf_device_type=None):

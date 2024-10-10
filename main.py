@@ -1,8 +1,8 @@
 import sys
 from rfgenerator_control import RFGenerator
 from ini_reader import load_config, find_comport_device
-from PySide6.QtCore import Qt, QEvent
-from PySide6.QtGui import QIcon, QMouseEvent
+from PySide6.QtCore import Qt, QEvent, QRegularExpression
+from PySide6.QtGui import QIcon, QDoubleValidator, QMouseEvent, QRegularExpressionValidator
 from PySide6.QtWidgets import QApplication, QMainWindow, QWidget
 from PySide6.QtWidgets import QCheckBox, QLineEdit, QLabel, QPushButton
 from PySide6.QtWidgets import QHBoxLayout, QVBoxLayout
@@ -11,6 +11,12 @@ from PySide6.QtWidgets import QHBoxLayout, QVBoxLayout
 class CustomLineEdit(QLineEdit):
     def __init__(self, name:str, main_window, *args, **kwargs):
         super().__init__(*args, **kwargs)
+
+         # Allow only digits (0-9) and periods (.) in the entry box
+        regex = QRegularExpression(r'[0-9.]*')  # Regular expression for numbers and period
+        validator = QRegularExpressionValidator(regex, self)
+        self.setValidator(validator)
+
         self.main_window = main_window
         self.name = name
         self.last_input = self.text()  # Store the last input
@@ -18,37 +24,27 @@ class CustomLineEdit(QLineEdit):
     def focusInEvent(self, event):
         self.last_input = self.text()  # Store the current text when focused
         super().focusInEvent(event)  # Call the base class method
-        self.clear()  # Clear the text
+        # self.clear()  # Clear the text when the focus is set on the entry box
 
     def focusOutEvent(self, event):
         if self.text() == '':
             print('restored last input')
             self.setText(self.last_input)  # Restore the last input if empty
         elif self.text() != '' and self.name == 'freq':
-            try: # validate that input is a number
-                num = float(self.text())
-                self.main_window.update_setting(
-                    input_line=self.main_window.freq_setting_input,
-                    label=self.main_window.freq_setting_label,
-                    param='Frequency',
-                    unit='MHz'
-                )
-            except ValueError as e:
-                self.setText(self.last_input)
-                print(f'ValueError: {e}')
+            self.main_window.update_setting(
+                input_line=self.main_window.freq_setting_input,
+                label=self.main_window.freq_setting_label,
+                param='Frequency',
+                unit='MHz'
+            )
 
         elif self.text() != '' and self.name == 'power':
-            try: # validate that input is a number
-                num = float(self.text())
-                self.main_window.update_setting(
-                    input_line=self.main_window.power_setting_input,
-                    label=self.main_window.power_setting_label,
-                    param='Power',
-                    unit='W'
-                )
-            except ValueError as e:
-                self.setText(self.last_input)
-                print(f'ValueError: {e}')
+            self.main_window.update_setting(
+                input_line=self.main_window.power_setting_input,
+                label=self.main_window.power_setting_label,
+                param='Power',
+                unit='W'
+            )
         super().focusOutEvent(event)  # Call the base class method
     
     def restore_text(self):
@@ -170,32 +166,11 @@ class MainWindow(QMainWindow):
         # Set the central widget of the Window.
         self.setCentralWidget(container)
 
-        # Connect QLineEdit's returnPressed signal to the update_label method with arguments
-        # A lambda function is required since arguments must be passed to the update_label method
-        self.freq_setting_input.returnPressed.connect(
-            lambda: [
-                # self.update_setting(
-                #     self.freq_setting_input,
-                #     self.freq_setting_label,
-                #     param='Frequency',
-                #     unit='MHz'
-                # ),
-                self.freq_setting_input.clearFocus()
-            ]
-        )
+        # Release the focus from the entry box when the enter button is pressed
+        self.freq_setting_input.returnPressed.connect(self.freq_setting_input.clearFocus)
+        self.power_setting_input.returnPressed.connect(self.power_setting_input.clearFocus)
 
-        self.power_setting_input.returnPressed.connect(
-            lambda: [
-                # self.update_setting(
-                #     self.power_setting_input,
-                #     self.power_setting_label,
-                #     param='Power',
-                #     unit='W'
-                # ),
-                self.power_setting_input.clearFocus()
-            ]
-        )
-
+        # Send autotune command when the autotune_button is pressed
         self.autotune_button.clicked.connect(self.autotune_clicked)
 
 

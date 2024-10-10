@@ -2,13 +2,24 @@
 from vrg_api import VRG as device
 
 class RFGenerator():
-    def __init__(self, resource_name):
-        self.rf_device = device(resource_name)
+    def __init__(self, resource_name, rf_device_type=None):
+        self.set_rf_device(rf_device_type, resource_name)
         self.enabled = False
         self.freq = 0
         self.power_setting = 0
         self.forward_power = 0
         self.refl_power = 0
+    
+    def set_rf_device(self, rf_device_type, resource_name):
+        accepted_devices = ['VRG']
+        # The first conditional statement is here to add RF generator types in the future
+        if rf_device_type in accepted_devices:
+            if rf_device_type == 'VRG':
+                from vrg_api import VRG as device
+        else:
+            raise ValueError(f'Unknown RF device type: {rf_device_type}. Accepted devices: {', '.join(accepted_devices)}')
+
+        self.rf_device = device(resource_name)
         
     def ping_device(self):
         return self.rf_device.ping()

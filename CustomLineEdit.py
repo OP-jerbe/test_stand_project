@@ -18,12 +18,15 @@ class CustomLineEdit(QLineEdit):
         self.setValidator(regex_validator)
 
         # Set the numeric limits and decimal precision
-        double_validator = QDoubleValidator(0.0, 1000.0, 2) # (min value, max value, decimals)
-        double_validator.setNotation(QDoubleValidator.StandardNotation)
+        power_double_validator = QDoubleValidator(0.0, 1000.0, 3) # (min value, max value, decimals)
+        freq_double_validator = QDoubleValidator(25.00, 42.00, 3)
+        power_double_validator.setNotation(QDoubleValidator.StandardNotation)
+        freq_double_validator.setNotation(QDoubleValidator.StandardNotation)
 
         # Setting both validators: First limit characters, then check numeric range
         self.regex_validator = regex_validator
-        self.double_validator = double_validator
+        self.power_double_validator = power_double_validator
+        self.freq_double_validator = freq_double_validator
 
     def focusInEvent(self, event):
         self.last_input = self.text()  # Store the current text when focused
@@ -39,13 +42,21 @@ class CustomLineEdit(QLineEdit):
             super().focusOutEvent(event)
             return
         
-        # Validate numeric range and decimal limits
-        double_state, _, _ = self.double_validator.validate(self.text(), 0)
-        if double_state != QValidator.Acceptable:
-            print("Value out of range or too many decimals. Restoring last input.")
-            self.setText(self.last_input)
-            super().focusOutEvent(event)
-            return
+        # Validate numeric range and decimal limits depending on which input box is being edited.
+        if self.name == 'freq':
+            double_state, _, _ = self.freq_double_validator.validate(self.text(), 0)
+            if double_state != QValidator.Acceptable:
+                print("Value out of range or too many decimals. Restoring last input.")
+                self.setText(self.last_input)
+                super().focusOutEvent(event)
+                return
+        elif self.name == 'power':
+            double_state, _, _ = self.power_double_validator.validate(self.text(), 0)
+            if double_state != QValidator.Acceptable:
+                print("Value out of range or too many decimals. Restoring last input.")
+                self.setText(self.last_input)
+                super().focusOutEvent(event)
+                return
 
         if self.text() == '':
             print('restored last input')

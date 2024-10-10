@@ -1,6 +1,6 @@
 import sys
 from rfgenerator_control import RFGenerator
-from ini_reader import load_config
+from ini_reader import load_config, find_comport_device
 from PySide6.QtCore import Qt, QEvent
 from PySide6.QtGui import QIcon, QMouseEvent
 from PySide6.QtWidgets import QApplication, QMainWindow, QWidget
@@ -25,19 +25,30 @@ class CustomLineEdit(QLineEdit):
             print('restored last input')
             self.setText(self.last_input)  # Restore the last input if empty
         elif self.text() != '' and self.name == 'freq':
-            self.main_window.update_setting(
-                input_line=self.main_window.freq_setting_input,
-                label=self.main_window.freq_setting_label,
-                param='Frequency',
-                unit='MHz'
-            )
+            try: # validate that input is a number
+                num = float(self.text())
+                self.main_window.update_setting(
+                    input_line=self.main_window.freq_setting_input,
+                    label=self.main_window.freq_setting_label,
+                    param='Frequency',
+                    unit='MHz'
+                )
+            except ValueError as e:
+                self.setText(self.last_input)
+                print(f'ValueError: {e}')
+
         elif self.text() != '' and self.name == 'power':
-            self.main_window.update_setting(
-                input_line=self.main_window.power_setting_input,
-                label=self.main_window.power_setting_label,
-                param='Power',
-                unit='W'
-            )
+            try: # validate that input is a number
+                num = float(self.text())
+                self.main_window.update_setting(
+                    input_line=self.main_window.power_setting_input,
+                    label=self.main_window.power_setting_label,
+                    param='Power',
+                    unit='W'
+                )
+            except ValueError as e:
+                self.setText(self.last_input)
+                print(f'ValueError: {e}')
         super().focusOutEvent(event)  # Call the base class method
     
     def restore_text(self):
@@ -55,11 +66,24 @@ class MainWindow(QMainWindow):
         # Install event filter to capture all mouse clicks
         self.installEventFilter(self)
 
-        if not self.simulation:
-            self.ini_file = 'hyperionTestStandControl.ini'
-            self.rfg_com_port = load_config(self.ini_file, 'RFGenerator')
-            self.resource_name = f'ASRL{self.rfg_com_port}::INSTR'
+        # Handle ini file
+        self.ini_file = 'hyperionTestStandControl.ini'
+        self.config_data = load_config(self.ini_file)
+        self.rf_device, self.rf_com_port = find_comport_device(self.config_data, 'RFGenerator')
+
+        try:
+            self.resource_name = f'ASRL{self.rf_com_port}::INSTR'
             self.rfg = RFGenerator(self.resource_name)
+        except Exception as e:
+            print(f'Exception: {e}')
+            print('Could not connect to RF device. App in simulation mode.')
+            self.simulation = True
+        
+        # if not self.simulation:
+        #     self.ini_file = 'hyperionTestStandControl.ini'
+        #     self.rfg_com_port = load_config(self.ini_file, 'RFGenerator')
+        #     self.resource_name = f'ASRL{self.rfg_com_port}::INSTR'
+        #     self.rfg = RFGenerator(self.resource_name)
 
         if not self.simulation:
             self.setWindowTitle("VRG Control")
@@ -179,7 +203,8 @@ class MainWindow(QMainWindow):
         # Capture all mouse button press events
         if event.type() == QEvent.MouseButtonPress:
             focused_widget = QApplication.focusWidget() # Get the currently focused widget
-            focused_widget.clearFocus()  # clear focus from the current QLineEdit
+            if focused_widget is not None:
+                focused_widget.clearFocus()  # clear focus from the current QLineEdit
         return super().eventFilter(source, event)
 
 
@@ -196,8 +221,7 @@ class MainWindow(QMainWindow):
 
     def update_setting(self, input_line:CustomLineEdit, label:QLabel, param:str, unit:str):
         entered_text = input_line.text() # Get text from CustomLineEdit
-        num = float(entered_text)
-
+        num = float(entered_text)  # Validate that the input is a float
         if not self.simulation:
             # Code to run if connected to RF generator
             if param == 'Frequency':

@@ -27,7 +27,7 @@ class MainWindow(QMainWindow):
             self.resource_name = f'ASRL{self.rf_com_port}::INSTR'
             self.rfg = RFGenerator(self.resource_name, self.rf_device)
         except Exception as e:
-            print(f'Exception: {e}')
+            #print(f'Exception: {e}')
             print('Could not connect to RF device. App in simulation mode.')
             self.simulation = True
         

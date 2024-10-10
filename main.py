@@ -1,55 +1,12 @@
 import sys
+from CustomLineEdit import CustomLineEdit
 from rfgenerator_control import RFGenerator
 from ini_reader import load_config, find_comport_device
-from PySide6.QtCore import Qt, QEvent, QRegularExpression
-from PySide6.QtGui import QIcon, QDoubleValidator, QMouseEvent, QRegularExpressionValidator
+from PySide6.QtCore import QEvent
+from PySide6.QtGui import QIcon
 from PySide6.QtWidgets import QApplication, QMainWindow, QWidget
-from PySide6.QtWidgets import QCheckBox, QLineEdit, QLabel, QPushButton
+from PySide6.QtWidgets import QCheckBox, QLabel, QPushButton
 from PySide6.QtWidgets import QHBoxLayout, QVBoxLayout
-
-
-class CustomLineEdit(QLineEdit):
-    def __init__(self, name:str, main_window, *args, **kwargs):
-        super().__init__(*args, **kwargs)
-
-         # Allow only digits (0-9) and periods (.) in the entry box
-        regex = QRegularExpression(r'[0-9.]*')  # Regular expression for numbers and period
-        validator = QRegularExpressionValidator(regex, self)
-        self.setValidator(validator)
-
-        self.main_window = main_window
-        self.name = name
-        self.last_input = self.text()  # Store the last input
-
-    def focusInEvent(self, event):
-        self.last_input = self.text()  # Store the current text when focused
-        super().focusInEvent(event)  # Call the base class method
-        # self.clear()  # Clear the text when the focus is set on the entry box
-
-    def focusOutEvent(self, event):
-        if self.text() == '':
-            print('restored last input')
-            self.setText(self.last_input)  # Restore the last input if empty
-        elif self.text() != '' and self.name == 'freq':
-            self.main_window.update_setting(
-                input_line=self.main_window.freq_setting_input,
-                label=self.main_window.freq_setting_label,
-                param='Frequency',
-                unit='MHz'
-            )
-
-        elif self.text() != '' and self.name == 'power':
-            self.main_window.update_setting(
-                input_line=self.main_window.power_setting_input,
-                label=self.main_window.power_setting_label,
-                param='Power',
-                unit='W'
-            )
-        super().focusOutEvent(event)  # Call the base class method
-    
-    def restore_text(self):
-        if self.text() == '':
-            self.setText(self.last_input)
 
 
 

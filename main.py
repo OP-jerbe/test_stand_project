@@ -9,7 +9,6 @@ from PySide6.QtWidgets import QCheckBox, QLabel, QPushButton
 from PySide6.QtWidgets import QHBoxLayout, QVBoxLayout
 
 
-
 class MainWindow(QMainWindow):
     def __init__(self):
         super().__init__()
@@ -19,14 +18,14 @@ class MainWindow(QMainWindow):
         # Install event filter to capture all mouse clicks
         self.installEventFilter(self)
 
-        # Handle ini file
+        # Handle ini file and load parameters
         self.ini_file = 'hyperionTestStandControl.ini'
         self.config_data = load_config(self.ini_file)
         self.rf_device, self.rf_com_port = find_comport_device(self.config_data, 'RFGenerator')
 
         try:
             self.resource_name = f'ASRL{self.rf_com_port}::INSTR'
-            self.rfg = RFGenerator(self.resource_name)
+            self.rfg = RFGenerator(self.resource_name, self.rf_device)
         except Exception as e:
             print(f'Exception: {e}')
             print('Could not connect to RF device. App in simulation mode.')

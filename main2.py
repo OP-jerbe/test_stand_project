@@ -107,6 +107,10 @@ class MainWindow(QMainWindow):
         self.timer.timeout.connect(self.update_display)
         self.timer.start(self.refresh_rate)
 
+##################################################################################################
+##################################################################################################
+##################################################################################################
+
         # Create labels for displaying power and frequency
         self.forward_power_label = QLabel("Forward Power: 0 W")
         self.reflected_power_label = QLabel("Reflected Power: 0 W")
@@ -125,11 +129,6 @@ class MainWindow(QMainWindow):
         readbacks_layout.addLayout(fwd_refl_layout)
         readbacks_layout.addLayout(abs_freq_layout)        
 
-
-##################################################################################################
-##################################################################################################
-##################################################################################################
-
         # Set up layout
         es_and_at_layout = QVBoxLayout()
         es_and_at_layout.addWidget(self.enable_switch)
@@ -147,18 +146,6 @@ class MainWindow(QMainWindow):
         power_layout.addWidget(self.power_setting_label)
         power_layout.setContentsMargins(10, 3, 10, 3)
 
-##################################################################################################
-##################################### NEW CODE STARTS HERE #######################################
-##################################################################################################
-        
-        # main_layout = QHBoxLayout()
-        # main_layout.addLayout(es_and_at_layout)
-        # main_layout.addLayout(freq_layout)
-        # main_layout.addLayout(power_layout)
-        # main_layout.setContentsMargins(10, 10, 10, 10) # Set margins (left, top, right, bottom)
-
-        # this ^ changes to that v
-
         inputs_layout = QHBoxLayout()
         inputs_layout.addLayout(es_and_at_layout)
         inputs_layout.addLayout(freq_layout)
@@ -168,13 +155,6 @@ class MainWindow(QMainWindow):
         main_layout = QVBoxLayout()
         main_layout.addLayout(inputs_layout)
         main_layout.addLayout(readbacks_layout)
-
-        
-
-##################################################################################################
-##################################################################################################
-##################################################################################################
-
 
         container = QWidget()
         container.setLayout(main_layout)

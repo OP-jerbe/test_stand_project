@@ -31,16 +31,17 @@ class MainWindow(QMainWindow):
             print('Could not connect to RF device. App in simulation mode.')
             self.simulation = True
 
+        
+        self.create_gui()
+
+
+    def create_gui(self):
         if not self.simulation:
             self.setWindowTitle("VRG Control")
         else:
             self.setWindowTitle('VRG Control - (simulation)')
         self.setWindowIcon(QIcon('./vrg_icon.ico'))
         
-        self.create_gui()
-
-
-    def create_gui(self):
         # Create enable rf switch
         self.enable_switch = QCheckBox('Enable RF', self)
         self.enable_switch.setChecked(False)

@@ -58,7 +58,7 @@ class DataAcquisition:
         try:
             self.forward_power = self.rf_generator.get_forward_power()
             self.reflected_power = self.rf_generator.get_refl_power()
-            self.absorbed_power = self.forward_power - self.reflected_power
+            self.absorbed_power = self.forward_power - self.refl_power
             self.frequency = self.rf_generator.get_frequency()
 
         except Exception as e:

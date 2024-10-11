@@ -37,7 +37,11 @@ class MainWindow(QMainWindow):
             self.setWindowTitle('VRG Control - (simulation)')
         self.setWindowIcon(QIcon('./vrg_icon.ico'))
         
-        # Enable switch
+        self.create_gui()
+
+
+    def create_gui(self):
+        # Create enable rf switch
         self.enable_switch = QCheckBox('Enable RF', self)
         self.enable_switch.setChecked(False)
         self.enable_switch.stateChanged.connect(self.on_toggle)
@@ -145,7 +149,6 @@ class MainWindow(QMainWindow):
         # Send autotune command when the autotune_button is pressed
         self.autotune_button.clicked.connect(self.autotune_clicked)
 
-
     def eventFilter(self, source, event):
         # Capture all mouse button press events
         if event.type() == QEvent.MouseButtonPress:
@@ -153,7 +156,6 @@ class MainWindow(QMainWindow):
             if focused_widget is not None:
                 focused_widget.clearFocus()  # clear focus from the current focused widget
         return super().eventFilter(source, event)
-
 
     def on_toggle(self, state):
         if state == 2: # checked
@@ -164,7 +166,6 @@ class MainWindow(QMainWindow):
             print('Toggle Switch: OFF') # replace this with command to disable
             if not self.simulation:
                 self.rfg.disable()
-
 
     def update_setting(self, input_line:CustomLineEdit, label:QLabel, param:str, unit:str):
         entered_text = input_line.text() # Get text from CustomLineEdit
@@ -191,7 +192,6 @@ class MainWindow(QMainWindow):
                 num_as_str = f'{int(num)}'
             input_line.setText(num_as_str) # Set text of the input box
             label.setText(f'{param} = {num_as_str} {unit}') # Set text to QLabel
-
 
     def autotune_clicked(self):
         if not self.simulation:

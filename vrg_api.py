@@ -25,7 +25,7 @@ class VRG:
     def read_command(self):
         try:
             response = self.instrument.read()
-            #print(f"Received response: {response}")  # Debugging info
+            print(f"Received response: {response}")  # Debugging info
             return response
         except pyvisa.VisaIOError as e:
             print(f"Error reading response: {e}")

@@ -8,8 +8,10 @@ class VRG:
         self.instrument = self.rm.open_resource(resource_name)
 
         # Get the valid frequency range in MHz
+
         self.min_tune_freq = self.read_min_tune_freq()
         self.max_tune_freq = self.read_max_tune_freq()
+        self.max_power_setting = 1000
 
     def query_command(self, command):
         self.instrument.query(command)
@@ -126,8 +128,8 @@ class VRG:
         if not isinstance(power, int):
             raise TypeError(f'Expected an integer, but got {type(power).__name__}')
         # Range validation
-        if power < 0 or power > 1000:
-            raise ValueError(f'Input {power} is out of bounds. Must be between 0 and 1000.')
+        if power < 0 or power > self.max_power_setting:
+            raise ValueError(f'Input {power} is out of bounds. Must be between 0 and {self.max_power_setting}.')
             
         command = f'SP{power:04}' # ensures that the integer power is always represented as a 4-digit string, padded with leading zeros if necessary
         self.write_command(command)

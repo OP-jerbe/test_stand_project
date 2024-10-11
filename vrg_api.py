@@ -6,7 +6,11 @@ class VRG:
     def __init__(self, resource_name): # probably set the resource name in .ini file
         self.rm = pyvisa.ResourceManager('@py')
         self.instrument = self.rm.open_resource(resource_name)
-    
+
+        # Get the valid frequency range in MHz
+        self.min_tune_freq = self.read_min_tune_freq()
+        self.max_tune_freq = self.read_max_tune_freq()
+
     def query_command(self, command):
         self.instrument.query(command)
     
@@ -19,7 +23,7 @@ class VRG:
     def read_command(self):
         try:
             response = self.instrument.read()
-            print(f"Received response: {response}")  # Debugging info
+            #print(f"Received response: {response}")  # Debugging info
             return response
         except pyvisa.VisaIOError as e:
             print(f"Error reading response: {e}")
@@ -135,8 +139,8 @@ class VRG:
             raise TypeError(f'Expected an float or int, but got {type(freq).__name__}')
         
         # Get the valid frequency range in MHz
-        min_freq = self.read_min_tune_freq()
-        max_freq = self.read_max_tune_freq()
+        min_freq = self.min_tune_freq
+        max_freq = self.max_tune_freq
         
         # Range validation
         if not (min_freq <= freq <= max_freq):

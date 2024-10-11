@@ -34,6 +34,44 @@ class MainWindow(QMainWindow):
         
         self.create_gui()
 
+        if not self.simulation:
+            from PySide6.QtCore import QTimer
+            from rf_data_acquisition import DataAcquisition
+
+            # Data acquisition setup
+            self.data_acquisition = DataAcquisition(self.rfg) if self.rfg else None
+            self.data_acquisition.start()
+
+            # Timer to update the GUI with data from the RF device
+            self.refresh_rate = 1000  # 1000ms = 1 second
+            self.timer = QTimer(self)
+            self.timer.timeout.connect(self.update_display)
+            self.timer.start(self.refresh_rate)
+
+
+    def update_display(self):
+        # Only run if a device is connected
+        if not self.simulation:
+            """
+            Update the display with the latest data from the RF device.
+            """
+            data = self.data_acquisition.get_data()
+            timestamp = data['timestamp']
+            
+            self.forward_power_label.setText(f"Forward Power: {data['forward_power']:.2f} W")
+            self.reflected_power_label.setText(f"Reflected Power: {data['reflected_power']:.2f} W")
+            self.absorbed_power_label.setText(f"Absorbed Power: {data['absorbed_power']:.2f} W")
+            self.frequency_label.setText(f"Frequency: {data['frequency']:.2f} MHz")
+
+    def closeEvent(self, event):
+        # Only run if a device is connected.
+        if not self.simulation:
+            """
+            Stop the data acquisition when the window is closed.
+            """
+            self.data_acquisition.stop()
+            event.accept()
+
 
     def create_gui(self) -> None:
         if not self.simulation:
@@ -201,7 +239,6 @@ class MainWindow(QMainWindow):
             self.freq_setting_input.setText(f'{new_freq}')
             self.freq_setting_label.setText(f'Frequency = {new_freq:.2f} MHz')
         print('Autotuned!')
-
 
 
 if __name__ == '__main__':

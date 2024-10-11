@@ -1,9 +1,10 @@
+import traceback
 import threading
 import time
 from datetime import datetime
 
 class DataAcquisition:
-    def __init__(self, rf_generator, interval=0.5):
+    def __init__(self, rf_generator, interval=1):
         """
         Initialize the DataAcquisition class.
 
@@ -11,14 +12,14 @@ class DataAcquisition:
         :param interval: Time interval (in seconds) between data fetches.
         """
         self.rf_generator = rf_generator
-        self.interval = interval
-        self.running = False
+        self.interval: int = interval
+        self.running: bool = False
 
         # Store the latest fetched values
-        self.forward_power = 0.0
-        self.reflected_power = 0.0
-        self.absorbed_power = 0.0
-        self.frequency = 0.0
+        self.forward_power: float = 0.0
+        self.refl_power: float = 0.0
+        self.absorbed_power: float = 0.0
+        self.frequency: float = 0.0
 
         # Background thread for fetching data
         self.thread = None
@@ -62,9 +63,10 @@ class DataAcquisition:
             self.frequency = self.rf_generator.get_frequency()
 
         except Exception as e:
-            print(f"Error while fetching data: {e}")
+            traceback.print_exc()
+            print(f"\nError while fetching data: {e}\n")
 
-    def get_data(self):
+    def get_data(self) -> dict:
         """
         Get the latest fetched data.
 

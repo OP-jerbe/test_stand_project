@@ -64,7 +64,7 @@ class MainWindow(QMainWindow):
             }
         """)
         
-        # Frequency setting
+        # Create frequency setting labels and input boxes
         self.top_freq_label = QLabel('Frequency (MHz)')
         if not self.simulation:
             self.freq_setting_label = QLabel(f'Frequency = {self.rfg.get_frequency():.2f} MHz')
@@ -74,7 +74,7 @@ class MainWindow(QMainWindow):
         self.freq_setting_input.setMaxLength(5)
         self.freq_setting_input.setPlaceholderText('Input Frequency Setting')
         
-        # Power setting
+        # Create power setting labels and input boxes
         self.top_power_label = QLabel('Power (W)')
         if not self.simulation:
             self.power_setting_label = QLabel(f'Power = {self.rfg.get_power_setting()} W')
@@ -84,10 +84,28 @@ class MainWindow(QMainWindow):
         self.power_setting_input.setMaxLength(4)
         self.power_setting_input.setPlaceholderText('Input Power Setting')
         
-        # Auto tune
+        # Create the autotune button
         self.autotune_button = QPushButton('Autotune')
 
+        # Create labels for displaying power and frequency
+        self.forward_power_label = QLabel("Forward Power: 0 W")
+        self.reflected_power_label = QLabel("Reflected Power: 0 W")
+        self.absorbed_power_label = QLabel("Absorbed Power: 0 W")
+        self.frequency_label = QLabel("Frequency: 0 MHz")
+
         # Set up layout
+        fwd_refl_layout = QVBoxLayout()
+        fwd_refl_layout.addWidget(self.forward_power_label)
+        fwd_refl_layout.addWidget(self.reflected_power_label)
+
+        abs_freq_layout = QVBoxLayout()
+        abs_freq_layout.addWidget(self.absorbed_power_label)
+        abs_freq_layout.addWidget(self.frequency_label)
+
+        readbacks_layout = QHBoxLayout()
+        readbacks_layout.addLayout(fwd_refl_layout)
+        readbacks_layout.addLayout(abs_freq_layout)
+
         es_and_at_layout = QVBoxLayout()
         es_and_at_layout.addWidget(self.enable_switch)
         es_and_at_layout.addWidget(self.autotune_button)
@@ -104,11 +122,15 @@ class MainWindow(QMainWindow):
         power_layout.addWidget(self.power_setting_label)
         power_layout.setContentsMargins(10, 3, 10, 3)
 
-        main_layout = QHBoxLayout()
-        main_layout.addLayout(es_and_at_layout)
-        main_layout.addLayout(freq_layout)
-        main_layout.addLayout(power_layout)
-        main_layout.setContentsMargins(10, 10, 10, 10) # Set margins (left, top, right, bottom)
+        inputs_layout = QHBoxLayout()
+        inputs_layout.addLayout(es_and_at_layout)
+        inputs_layout.addLayout(freq_layout)
+        inputs_layout.addLayout(power_layout)
+        inputs_layout.setContentsMargins(10, 10, 10, 10) # Set margins (left, top, right, bottom)
+
+        main_layout = QVBoxLayout()
+        main_layout.addLayout(inputs_layout)
+        main_layout.addLayout(readbacks_layout)
         
         container = QWidget()
         container.setLayout(main_layout)

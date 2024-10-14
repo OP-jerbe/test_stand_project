@@ -10,7 +10,6 @@ class CustomLineEdit(QLineEdit):
         self.main_window = main_window
         self.name = name
         self.last_input = self.text()  # Store the last input
-        
 
         # Set the data entry validations
         # Allow only digits (0-9) and periods (.) in the entry box
@@ -63,7 +62,6 @@ class CustomLineEdit(QLineEdit):
                 return
             self.main_window.update_setting(
                 input_line=self.main_window.freq_setting_input,
-                label=self.main_window.freq_setting_label,
                 param='Frequency',
                 unit='MHz'
             )
@@ -76,7 +74,6 @@ class CustomLineEdit(QLineEdit):
                 return
             self.main_window.update_setting(
                 input_line=self.main_window.power_setting_input,
-                label=self.main_window.power_setting_label,
                 param='Power',
                 unit='W'
             )

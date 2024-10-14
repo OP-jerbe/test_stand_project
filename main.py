@@ -93,6 +93,7 @@ class MainWindow(QMainWindow):
 
         # Create enable rf switch
         self.enable_switch = QCheckBox('Enable RF', self)
+        self.enable_switch.setCursor(Qt.PointingHandCursor)
         self.enable_switch.setChecked(False)
         self.enable_switch.stateChanged.connect(self.on_toggle)
         self.enable_switch.setStyleSheet("""
@@ -136,6 +137,7 @@ class MainWindow(QMainWindow):
         
         # Create the autotune button
         self.autotune_button = QPushButton('Autotune')
+        self.autotune_button.setCursor(Qt.PointingHandCursor)
 
         def _display_style():
             return """

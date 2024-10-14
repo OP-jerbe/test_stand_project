@@ -1,7 +1,7 @@
-import traceback
-import threading
-import time
-from datetime import datetime
+import traceback # Used for printing stack traces in case of exceptions.
+import threading # Used to run the data acquisition process in a separate thread
+import time # Used to introduce delays between data fetches.
+from datetime import datetime # Used to capture timestamps for the data.
 
 class DataAcquisition:
     def __init__(self, rf_generator, interval=1):
@@ -12,10 +12,11 @@ class DataAcquisition:
         :param interval: Time interval (in seconds) between data fetches.
         """
         self.rf_generator = rf_generator
-        self.interval: int = interval
+        self.interval: float = interval
         self.running: bool = False
 
         # Store the latest fetched values
+        self.timestamp: datetime = None
         self.forward_power: float = 0.0
         self.refl_power: float = 0.0
         self.absorbed_power: float = 0.0
@@ -57,6 +58,7 @@ class DataAcquisition:
             return
 
         try:
+            self.timestamp = datetime.now()
             self.forward_power = self.rf_generator.get_forward_power()
             self.reflected_power = self.rf_generator.get_refl_power()
             self.absorbed_power = self.forward_power - self.refl_power
@@ -70,13 +72,11 @@ class DataAcquisition:
         """
         Get the latest fetched data.
 
-        :return: A dictionary containing forward power, reflected power, absorbed power, and frequency.
+        :return: A dictionary containing a timestamp, forward power, reflected power, absorbed power, and frequency.
         """
-        # Capture the current timestamp
-        current_time = datetime.now().strftime("%Y-%m-%d %H:%M:%S")
 
         return {
-            'timestamp': current_time,
+            'time': self.timestamp.strftime("%Y-%m-%d %H:%M:%S"),
             "forward_power": self.forward_power,
             "reflected_power": self.reflected_power,
             "absorbed_power": self.absorbed_power,

@@ -4,7 +4,7 @@ from rfgenerator_control import RFGenerator
 from ini_reader import load_config, find_comport_device
 from PySide6.QtCore import QEvent
 from PySide6.QtGui import QIcon, QMouseEvent
-from PySide6.QtWidgets import QApplication, QMainWindow, QWidget
+from PySide6.QtWidgets import QApplication, QMainWindow, QWidget, QMessageBox
 from PySide6.QtWidgets import QCheckBox, QLabel, QPushButton
 from PySide6.QtWidgets import QHBoxLayout, QVBoxLayout
 
@@ -37,17 +37,18 @@ class MainWindow(QMainWindow):
         if not self.simulation:
             from PySide6.QtCore import QTimer
             from rf_data_acquisition import DataAcquisition
-
+            
+            # Set the refresh rate and use it for both data acquisition and GUI update
+            self.refresh_rate = 1000  # 1000ms = 1 second
+            
             # Data acquisition setup
-            self.data_acquisition = DataAcquisition(self.rfg) if self.rfg else None
+            self.data_acquisition = DataAcquisition(self.rfg, self.refresh_rate / 1000) if self.rfg else None
             self.data_acquisition.start()
 
             # Timer to update the GUI with data from the RF device
-            self.refresh_rate = 1000  # 1000ms = 1 second
             self.timer = QTimer(self)
             self.timer.timeout.connect(self.update_display)
             self.timer.start(self.refresh_rate)
-
 
     def update_display(self):
         # Only run if a device is connected
@@ -64,14 +65,22 @@ class MainWindow(QMainWindow):
             self.frequency_label.setText(f"Frequency: {data['frequency']:.2f} MHz")
 
     def closeEvent(self, event):
-        # Only run if a device is connected.
+        # Confirm the user wants to exit the application.
+        reply = QMessageBox.question(self, 'Confirmation',
+                                     "Are you sure you want to close the window?",
+                                     QMessageBox.Yes | QMessageBox.No, QMessageBox.No)
+        if reply == QMessageBox.Yes:
+            event.accept()
+        else:
+            event.ignore()
+
+        # Only run if a device is connected.    
         if not self.simulation:
             """
             Stop the data acquisition when the window is closed.
             """
             self.data_acquisition.stop()
             event.accept()
-
 
     def create_gui(self) -> None:
         if not self.simulation:

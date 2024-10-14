@@ -59,10 +59,10 @@ class MainWindow(QMainWindow):
             data = self.data_acquisition.get_data()
             timestamp = data['time']
             
-            self.forward_power_label.setText(f"Forward Power: {data['forward_power']:.2f} W")
-            self.reflected_power_label.setText(f"Reflected Power: {data['reflected_power']:.2f} W")
-            self.absorbed_power_label.setText(f"Absorbed Power: {data['absorbed_power']:.2f} W")
-            self.frequency_label.setText(f"Frequency: {data['frequency']:.2f} MHz")
+            self.forward_power_display.setText(f"{data['forward_power']:.2f} W")
+            self.reflected_power_display.setText(f"{data['reflected_power']:.2f} W")
+            self.absorbed_power_display.setText(f"{data['absorbed_power']:.2f} W")
+            self.frequency_display.setText(f"{data['frequency']:.2f} MHz")
 
     def closeEvent(self, event):
         # Confirm the user wants to exit the application.
@@ -88,6 +88,8 @@ class MainWindow(QMainWindow):
         else:
             self.setWindowTitle('VRG Control - (simulation)')
         self.setWindowIcon(QIcon('./vrg_icon.ico'))
+
+        self.setFixedSize(450,280)
 
         # Create enable rf switch
         self.enable_switch = QCheckBox('Enable RF', self)
@@ -117,57 +119,81 @@ class MainWindow(QMainWindow):
             }
         """)
         
-        # Create frequency setting labels and input boxes
+
+        # Create frequency SETTING labels and input boxes
         self.top_freq_label = QLabel('Frequency (MHz)')
         self.top_freq_label.setAlignment(Qt.AlignCenter)
         self.freq_setting_input = CustomLineEdit(name='freq', main_window=self)
         self.freq_setting_input.setMaxLength(5)
         self.freq_setting_input.setPlaceholderText('Input Freq. Setting')
-        # self.freq_setting_input.setStyleSheet("""
-        #     QLineEdit {
-        #         width: 55px;
-        #         height: 20px;
-        #     }
-        # """)
 
-        # Create power setting labels and input boxes
+        # Create power SETTING labels and input boxes
         self.top_power_label = QLabel('Power (W)')
         self.top_power_label.setAlignment(Qt.AlignCenter)
         self.power_setting_input = CustomLineEdit(name='power', main_window=self)
         self.power_setting_input.setMaxLength(4)
         self.power_setting_input.setPlaceholderText('Input Power Setting')
-        # self.power_setting_input.setStyleSheet("""
-        #     QLineEdit {
-        #         width: 55px;
-        #         height: 20px;
-        #     }
-        # """)
         
         # Create the autotune button
         self.autotune_button = QPushButton('Autotune')
 
-        # Create labels for displaying power and frequency
-        self.forward_power_label = QLabel("Forward Power: 0 W")
-        self.reflected_power_label = QLabel("Reflected Power: 0 W")
-        self.absorbed_power_label = QLabel("Absorbed Power: 0 W")
-        self.frequency_label = QLabel("Frequency: 0 MHz")
+        def _display_style():
+            return """
+            QLabel {
+                font-size: 30px;            /* Large font */
+                color: red;                 /* Red text */
+                background-color: black;    /* Black background */
+                border: 2px solid gray;     /* Gray border */
+                border-style: outset;       /* Raised effect */
+                padding: 5px;              /* Padding inside the label */
+            }
+            """
+
+        # Create labels for displaying power and frequency OUTPUTS
+        self.forward_power_label = QLabel(' Forward Power')
+        self.forward_power_display = QLabel('0 W')
+        self.forward_power_display.setStyleSheet(_display_style())
+        self.reflected_power_label = QLabel(' Reflected Power')
+        self.reflected_power_display = QLabel('0 W')
+        self.reflected_power_display.setStyleSheet(_display_style())
+        self.absorbed_power_label = QLabel(' Absorbed Power')
+        self.absorbed_power_display = QLabel('0 W')
+        self.absorbed_power_display.setStyleSheet(_display_style())
+        self.frequency_label = QLabel(' Frequency')
+        self.frequency_display = QLabel('0 MHz')
+        self.frequency_display.setStyleSheet(_display_style())
 
         # Set up layout
+        fwd_display = QVBoxLayout()
+        fwd_display.addWidget(self.forward_power_label)
+        fwd_display.addWidget(self.forward_power_display)
+        fwd_display.setContentsMargins(0,5,0,20)
+        refl_display = QVBoxLayout()
+        refl_display.addWidget(self.reflected_power_label)
+        refl_display.addWidget(self.reflected_power_display)
         fwd_refl_layout = QVBoxLayout()
-        fwd_refl_layout.addWidget(self.forward_power_label)
-        fwd_refl_layout.addWidget(self.reflected_power_label)
+        fwd_refl_layout.addLayout(fwd_display)
+        fwd_refl_layout.addLayout(refl_display)
 
+        abs_display = QVBoxLayout()
+        abs_display.addWidget(self.absorbed_power_label)
+        abs_display.addWidget(self.absorbed_power_display)
+        abs_display.setContentsMargins(0,5,0,20)
+        freq_display = QVBoxLayout()
+        freq_display.addWidget(self.frequency_label)
+        freq_display.addWidget(self.frequency_display)
         abs_freq_layout = QVBoxLayout()
-        abs_freq_layout.addWidget(self.absorbed_power_label)
-        abs_freq_layout.addWidget(self.frequency_label)
+        abs_freq_layout.addLayout(abs_display)
+        abs_freq_layout.addLayout(freq_display)
 
-        readbacks_layout = QHBoxLayout()
-        readbacks_layout.addLayout(fwd_refl_layout)
-        readbacks_layout.addLayout(abs_freq_layout)
+        displays_layout = QHBoxLayout()
+        displays_layout.addLayout(fwd_refl_layout)
+        displays_layout.addLayout(abs_freq_layout)
 
-        es_and_at_layout = QVBoxLayout()
-        es_and_at_layout.addWidget(self.enable_switch)
-        es_and_at_layout.addWidget(self.autotune_button)
+
+        enable_and_autotune_layout = QVBoxLayout()
+        enable_and_autotune_layout.addWidget(self.enable_switch)
+        enable_and_autotune_layout.addWidget(self.autotune_button)
         
         freq_layout = QVBoxLayout()
         freq_layout.addWidget(self.top_freq_label)
@@ -180,14 +206,14 @@ class MainWindow(QMainWindow):
         power_layout.setContentsMargins(10, 3, 10, 3)
 
         inputs_layout = QHBoxLayout()
-        inputs_layout.addLayout(es_and_at_layout)
+        inputs_layout.addLayout(enable_and_autotune_layout)
         inputs_layout.addLayout(freq_layout)
         inputs_layout.addLayout(power_layout)
-        inputs_layout.setContentsMargins(10, 10, 10, 10) # Set margins (left, top, right, bottom)
+        inputs_layout.setContentsMargins(10, 10, 10, 10)
 
         main_layout = QVBoxLayout()
         main_layout.addLayout(inputs_layout)
-        main_layout.addLayout(readbacks_layout)
+        main_layout.addLayout(displays_layout)
         
         container = QWidget()
         container.setLayout(main_layout)

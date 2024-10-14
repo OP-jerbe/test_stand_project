@@ -2,7 +2,7 @@ import sys
 from CustomLineEdit import CustomLineEdit
 from rfgenerator_control import RFGenerator
 from ini_reader import load_config, find_comport_device
-from PySide6.QtCore import QEvent
+from PySide6.QtCore import QEvent, Qt
 from PySide6.QtGui import QIcon, QMouseEvent
 from PySide6.QtWidgets import QApplication, QMainWindow, QWidget, QMessageBox
 from PySide6.QtWidgets import QCheckBox, QLabel, QPushButton
@@ -57,7 +57,7 @@ class MainWindow(QMainWindow):
             Update the display with the latest data from the RF device.
             """
             data = self.data_acquisition.get_data()
-            timestamp = data['timestamp']
+            timestamp = data['time']
             
             self.forward_power_label.setText(f"Forward Power: {data['forward_power']:.2f} W")
             self.reflected_power_label.setText(f"Reflected Power: {data['reflected_power']:.2f} W")
@@ -97,44 +97,51 @@ class MainWindow(QMainWindow):
             QCheckBox {
                 width: 75px;
                 height: 20px;
-                border: 2px solid #999999;
+                border: 2px solid #dbdbdb;      /* light gray */
                 border-radius: 10px;
-                background: #e0e0e0;
+                background: #dbdbdb;            /* light gray */
                 text-align: center;
             }
             QCheckBox:checked {
-                background: #76b041;
-                border: 2px solid #76b041;
+                background: #999999;            /* dark gray */
+                border: 2px solid #999999;      /* dark gray */
             }
             QCheckBox:indicator {
                 width: 18px;
                 height: 18px;
                 border-radius: 9px;
+                background: #cf1313;            /* red */
             }
             QCheckBox:indicator:checked {
-                background: white;
+                background: #5af716;            /* green */
             }
         """)
         
         # Create frequency setting labels and input boxes
         self.top_freq_label = QLabel('Frequency (MHz)')
-        if not self.simulation:
-            self.freq_setting_label = QLabel(f'Frequency = {self.rfg.get_frequency():.2f} MHz')
-        else:
-            self.freq_setting_label = QLabel('Frequency = 00.00 MHz')
+        self.top_freq_label.setAlignment(Qt.AlignCenter)
         self.freq_setting_input = CustomLineEdit(name='freq', main_window=self)
         self.freq_setting_input.setMaxLength(5)
-        self.freq_setting_input.setPlaceholderText('Input Frequency Setting')
-        
+        self.freq_setting_input.setPlaceholderText('Input Freq. Setting')
+        # self.freq_setting_input.setStyleSheet("""
+        #     QLineEdit {
+        #         width: 55px;
+        #         height: 20px;
+        #     }
+        # """)
+
         # Create power setting labels and input boxes
         self.top_power_label = QLabel('Power (W)')
-        if not self.simulation:
-            self.power_setting_label = QLabel(f'Power = {self.rfg.get_power_setting()} W')
-        else:
-            self.power_setting_label = QLabel('Power = 0 W')
+        self.top_power_label.setAlignment(Qt.AlignCenter)
         self.power_setting_input = CustomLineEdit(name='power', main_window=self)
         self.power_setting_input.setMaxLength(4)
         self.power_setting_input.setPlaceholderText('Input Power Setting')
+        # self.power_setting_input.setStyleSheet("""
+        #     QLineEdit {
+        #         width: 55px;
+        #         height: 20px;
+        #     }
+        # """)
         
         # Create the autotune button
         self.autotune_button = QPushButton('Autotune')
@@ -165,13 +172,11 @@ class MainWindow(QMainWindow):
         freq_layout = QVBoxLayout()
         freq_layout.addWidget(self.top_freq_label)
         freq_layout.addWidget(self.freq_setting_input)
-        freq_layout.addWidget(self.freq_setting_label)
         freq_layout.setContentsMargins(10, 3, 10, 3)
         
         power_layout = QVBoxLayout()
         power_layout.addWidget(self.top_power_label)
         power_layout.addWidget(self.power_setting_input)
-        power_layout.addWidget(self.power_setting_label)
         power_layout.setContentsMargins(10, 3, 10, 3)
 
         inputs_layout = QHBoxLayout()
@@ -215,7 +220,7 @@ class MainWindow(QMainWindow):
             if not self.simulation:
                 self.rfg.disable()
 
-    def update_setting(self, input_line:CustomLineEdit, label:QLabel, param:str, unit:str) -> None:
+    def update_setting(self, input_line:CustomLineEdit, param:str, unit:str) -> None:
         entered_text: str = input_line.text() # Get text from CustomLineEdit
         num: float = float(entered_text)  # Validate that the input is a float
         if not self.simulation:
@@ -224,14 +229,10 @@ class MainWindow(QMainWindow):
                 num_as_str: str = f'{num:.2f}'
                 input_line.setText(num_as_str)
                 self.rfg.set_frequency(num) # tell RF generator to set the frequency to num
-                freq: float = self.rfg.get_frequency() # ask RF generator what it's frequency setting is
-                label.setText(f'{param} = {freq:.2f} {unit}')
             elif param == 'Power':
                 num_as_str: str = f'{int(num)}'
                 input_line.setText(num_as_str)
                 self.rfg.set_power(int(num)) # tell RF generator to set the frequency to num
-                power: int = self.rfg.get_power_setting() # ask RF generator what it's frequency setting is
-                label.setText(f'{param} = {power} {unit}')
         else:
             # Code to run if in simulation mode
             if param == 'Frequency':
@@ -239,7 +240,6 @@ class MainWindow(QMainWindow):
             elif param == 'Power':
                 num_as_str: str = f'{int(num)}'
             input_line.setText(num_as_str) # Set text of the input box
-            label.setText(f'{param} = {num_as_str} {unit}') # Set text to QLabel
 
     def autotune_clicked(self) -> None:
         if not self.simulation:

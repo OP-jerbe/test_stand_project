@@ -118,6 +118,9 @@ class MainWindow(QMainWindow):
             QCheckBox:indicator:checked {
                 background: #5af716;            /* green */
             }
+            QCheckBox:hover {
+                background-color: #d0e4f7;      /* bluish */
+            }
         """)
         
 

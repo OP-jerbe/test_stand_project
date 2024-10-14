@@ -92,7 +92,7 @@ class MainWindow(QMainWindow):
         self.setFixedSize(450,280)
 
         # Create enable rf switch
-        self.enable_switch = QCheckBox('Enable RF       ', self) # spaces are here to fill the button so there is not dead spot where user cannot click.
+        self.enable_switch = QCheckBox('Enable RF       ', self) # spaces are here to fill the checkbox so there is not a dead spot where user cannot click.
         self.enable_switch.setCursor(Qt.PointingHandCursor)
         self.enable_switch.setChecked(False)
         self.enable_switch.stateChanged.connect(self.on_toggle)
@@ -104,15 +104,17 @@ class MainWindow(QMainWindow):
                 border-radius: 10px;
                 background: #dbdbdb;            /* light gray */
                 text-align: center;
+                border-style: outset;           /* Raised effect */
             }
             QCheckBox:checked {
                 background: #999999;            /* dark gray */
-                border: 2px solid #999999;      /* dark gray */
+                border: 2px solid #dbdbdb;      /* light gray */
+                border-style: inset;            /* pressed effect */
             }
             QCheckBox:indicator {
-                width: 18px;
-                height: 18px;
-                border-radius: 9px;
+                width: 16px;
+                height: 16px;
+                border-radius: 8px;
                 background: #cf1313;            /* red */
             }
             QCheckBox:indicator:checked {
@@ -150,7 +152,7 @@ class MainWindow(QMainWindow):
                 background-color: black;    /* Black background */
                 border: 2px solid gray;     /* Gray border */
                 border-style: outset;       /* Raised effect */
-                padding: 5px;              /* Padding inside the label */
+                padding: 5px;               /* Padding inside the label */
             }
             """
 
@@ -243,11 +245,11 @@ class MainWindow(QMainWindow):
 
     def on_toggle(self, state:int) -> None:
         if state == 2: # checked
-            print('Toggle Switch: ON') # replace this with command to enable
+            print('RF Enabled') # replace this with command to enable
             if not self.simulation:
                 self.rfg.enable()
         else: # unchecked
-            print('Toggle Switch: OFF') # replace this with command to disable
+            print('RF Disabled') # replace this with command to disable
             if not self.simulation:
                 self.rfg.disable()
 

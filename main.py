@@ -92,7 +92,7 @@ class MainWindow(QMainWindow):
         self.setFixedSize(450,280)
 
         # Create enable rf switch
-        self.enable_switch = QCheckBox('Enable RF', self)
+        self.enable_switch = QCheckBox('Enable RF       ', self) # spaces are here to fill the button so there is not dead spot where user cannot click.
         self.enable_switch.setCursor(Qt.PointingHandCursor)
         self.enable_switch.setChecked(False)
         self.enable_switch.stateChanged.connect(self.on_toggle)

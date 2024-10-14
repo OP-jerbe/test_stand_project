@@ -10,6 +10,7 @@ class CustomLineEdit(QLineEdit):
         self.main_window = main_window
         self.name = name
         self.last_input = self.text()  # Store the last input
+        
 
         # Set the data entry validations
         # Allow only digits (0-9) and periods (.) in the entry box
@@ -40,6 +41,7 @@ class CustomLineEdit(QLineEdit):
         if self.text() == '':
             print('restored last input')
             self.setText(self.last_input)  # Restore the last input if empty
+            super().focusOutEvent(event)
             return
         
         # Validate character restrictions first (digits and periods only)

@@ -2,7 +2,8 @@ import sys
 from CustomLineEdit import CustomLineEdit
 from rfgenerator_control import RFGenerator
 from ini_reader import load_config, find_comport_device
-from PySide6.QtCore import QEvent, Qt
+from rf_data_acquisition import DataAcquisition
+from PySide6.QtCore import QEvent, Qt, QTimer
 from PySide6.QtGui import QIcon, QMouseEvent
 from PySide6.QtWidgets import QApplication, QMainWindow, QWidget, QMessageBox
 from PySide6.QtWidgets import QCheckBox, QLabel, QPushButton
@@ -19,9 +20,10 @@ class MainWindow(QMainWindow):
         self.installEventFilter(self)
 
         # Handle ini file and load parameters
-        self.ini_file = 'hyperionTestStandControl.ini'
+        self.ini_file: str = 'hyperionTestStandControl.ini'
         self.config_data = load_config(self.ini_file)
         self.rf_device, self.rf_com_port = find_comport_device(self.config_data, 'RFGenerator')
+        self.autotune_flag: bool = False
 
         try:
             self.resource_name = f'ASRL{self.rf_com_port}::INSTR'
@@ -34,10 +36,7 @@ class MainWindow(QMainWindow):
         
         self.create_gui()
 
-        if not self.simulation:
-            from PySide6.QtCore import QTimer
-            from rf_data_acquisition import DataAcquisition
-            
+        if not self.simulation:  
             # Set the refresh rate and use it for both data acquisition and GUI update
             self.refresh_rate = 1000  # 1000ms = 1 second
             
@@ -58,16 +57,20 @@ class MainWindow(QMainWindow):
             """
             data = self.data_acquisition.get_data()
             timestamp = data['time']
+
+            if self.autotune_flag:
+                self.freq_setting_input.setText(f'{data['frequency']:.2f}')
+                self.autotune_flag = False
             
-            self.forward_power_display.setText(f"{data['forward_power']:.2f} W")
-            self.reflected_power_display.setText(f"{data['reflected_power']:.2f} W")
-            self.absorbed_power_display.setText(f"{data['absorbed_power']:.2f} W")
-            self.frequency_display.setText(f"{data['frequency']:.2f} MHz")
+            self.forward_power_display.setText(f'{data['forward_power']:.2f} W')
+            self.reflected_power_display.setText(f'{data['reflected_power']:.2f} W')
+            self.absorbed_power_display.setText(f'{data['absorbed_power']:.2f} W')
+            self.frequency_display.setText(f'{data['frequency']:.2f} MHz')
 
     def closeEvent(self, event):
         # Confirm the user wants to exit the application.
         reply = QMessageBox.question(self, 'Confirmation',
-                                     "Are you sure you want to close the window?",
+                                     'Are you sure you want to close the window?',
                                      QMessageBox.Yes | QMessageBox.No, QMessageBox.No)
         if reply == QMessageBox.Yes:
             event.accept()
@@ -84,7 +87,7 @@ class MainWindow(QMainWindow):
 
     def create_gui(self) -> None:
         if not self.simulation:
-            self.setWindowTitle("VRG Control")
+            self.setWindowTitle('VRG Control')
         else:
             self.setWindowTitle('VRG Control - (simulation)')
         self.setWindowIcon(QIcon('./vrg_icon.ico'))
@@ -276,10 +279,8 @@ class MainWindow(QMainWindow):
 
     def autotune_clicked(self) -> None:
         if not self.simulation:
+            self.autotune_flag = True
             self.rfg.auto_tune()
-            
-            new_freq: float = self.rfg.get_frequency()
-            self.freq_setting_input.setText(f'{new_freq}')
         print('Autotuned!')
 
 

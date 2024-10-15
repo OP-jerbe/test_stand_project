@@ -277,9 +277,9 @@ class MainWindow(QMainWindow):
     def autotune_clicked(self) -> None:
         if not self.simulation:
             self.rfg.auto_tune()
+            
             new_freq: float = self.rfg.get_frequency()
             self.freq_setting_input.setText(f'{new_freq}')
-            self.freq_setting_label.setText(f'Frequency = {new_freq:.2f} MHz')
         print('Autotuned!')
 
 

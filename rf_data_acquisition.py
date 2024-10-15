@@ -66,7 +66,7 @@ class DataAcquisition:
 
         except Exception as e:
             traceback.print_exc()
-            print(f"\nError while fetching data: {e}\n")
+            print(f'\nError while fetching data: {e}\n')
 
     def get_data(self) -> dict:
         """
@@ -76,9 +76,9 @@ class DataAcquisition:
         """
 
         return {
-            'time': self.timestamp.strftime("%Y-%m-%d %H:%M:%S"),
-            "forward_power": self.forward_power,
-            "reflected_power": self.reflected_power,
-            "absorbed_power": self.absorbed_power,
-            "frequency": self.frequency
+            'time': self.timestamp.strftime('%Y-%m-%d %H:%M:%S'),
+            'forward_power': self.forward_power,
+            'reflected_power': self.reflected_power,
+            'absorbed_power': self.absorbed_power,
+            'frequency': self.frequency
         }

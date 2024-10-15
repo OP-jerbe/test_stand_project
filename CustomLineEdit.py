@@ -46,7 +46,7 @@ class CustomLineEdit(QLineEdit):
         # Validate character restrictions first (digits and periods only)
         regex_state, _, _ = self.regex_validator.validate(self.text(), 0)
         if regex_state != QValidator.Acceptable:
-            print("Invalid characters entered. Restoring last input.")
+            print('Invalid characters entered. Restoring last input.')
             self.setText(self.last_input)
             super().focusOutEvent(event)
             return
@@ -56,7 +56,7 @@ class CustomLineEdit(QLineEdit):
         if self.name == 'freq':
             double_state, _, _ = self.freq_double_validator.validate(self.text(), 0)
             if double_state != QValidator.Acceptable:
-                print("Value out of range or too many decimals.")
+                print('Value out of range or too many decimals.')
                 self.setText(self.last_input)
                 super().focusOutEvent(event)
                 return
@@ -68,7 +68,7 @@ class CustomLineEdit(QLineEdit):
         elif self.name == 'power':
             double_state, _, _ = self.power_double_validator.validate(self.text(), 0)
             if double_state != QValidator.Acceptable:
-                print("Value out of range or too many decimals.")
+                print('Value out of range or too many decimals.')
                 self.setText(self.last_input)
                 super().focusOutEvent(event)
                 return

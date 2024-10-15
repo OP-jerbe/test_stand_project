@@ -62,9 +62,9 @@ class MainWindow(QMainWindow):
                 self.freq_setting_input.setText(f'{data['frequency']:.2f}')
                 self.autotune_flag = False
             
-            self.forward_power_display.setText(f'{data['forward_power']:.2f} W')
-            self.reflected_power_display.setText(f'{data['reflected_power']:.2f} W')
-            self.absorbed_power_display.setText(f'{data['absorbed_power']:.2f} W')
+            self.forward_power_display.setText(f'{data['forward_power']:.0f} W')
+            self.reflected_power_display.setText(f'{data['reflected_power']:.1f} W')
+            self.absorbed_power_display.setText(f'{data['absorbed_power']:.0f} W')
             self.frequency_display.setText(f'{data['frequency']:.2f} MHz')
 
     def closeEvent(self, event):

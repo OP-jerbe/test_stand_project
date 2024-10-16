@@ -3,7 +3,7 @@ import pyvisa
 
 
 class VRG:
-    def __init__(self, resource_name): # probably set the resource name in .ini file
+    def __init__(self, resource_name) -> None: # probably set the resource name in .ini file
         self.rm = pyvisa.ResourceManager('@py')
         self.instrument = self.rm.open_resource(resource_name)
 
@@ -13,86 +13,115 @@ class VRG:
         self.max_tune_freq = self.read_max_tune_freq()
         self.max_power_setting = 1000
 
+    
     def query_command(self, command):
-        self.instrument.query(command)
+        self.instrument.query(command) # type:ignore
     
     def write_command(self, command):
-        self.instrument.write(command)
+        self.instrument.write(command) # type:ignore
     
     def write_raw_command(self, command):
-        self.instrument.write_raw(command)
+        self.instrument.write_raw(command) # type:ignore
         
-    def read_command(self):
+    def read_command(self) -> str | None:
         try:
-            response = self.instrument.read()
+            response: str = self.instrument.read() # type:ignore
             print(f'Received response: {response}')  # Debugging info
             return response
         except pyvisa.VisaIOError as e:
             print(f'Error reading response: {e}')
             return None
     
-    def ping(self) -> str:
+    def ping(self) -> str | None:
         command = b'!\n'
         self.write_raw_command(command)
-        response = self.read_command()
+        response: str | None = self.read_command()
         return response
     
     def read_frequency(self) -> float:
         """returns the frequency setting in MHz"""
-        command = 'RQ'
+        command: str = 'RQ'
         self.write_command(command)
-        response = self.read_command()
-        return(float(response.strip(command).strip('\r\n'))*1e-3)
+        response: str | None = self.read_command()
+        if response is not None:
+            return(float(response.strip(command).strip('\r\n'))*1e-3)
+        else:
+            return 0.00
     
     def read_power_setting(self) -> int:
         """returns the power setting in watts"""
         command = 'RO'
         self.write_command(command)
-        response = self.read_command()
-        return(int(response.strip(command).strip('\r\n')))
+        response: str | None = self.read_command()
+        if response is not None:
+            return(int(response.strip(command).strip('\r\n')))
+        else:
+            return 0
     
     def read_min_tune_freq(self) -> float:
         """returns the minimum allowable freq setting in MHz"""
         command = 'R1'
         self.write_command(command)
-        response = self.read_command()
-        return(float(response.strip(command).strip('\r\n'))*1e-3)
+        response: str | None = self.read_command()
+        if response is not None:
+            return(float(response.strip(command).strip('\r\n'))*1e-3)
+        else:
+            return 0.00
     
     def read_max_tune_freq(self) -> float:
         """returns the maximum allowable freq setting in MHz"""
         command = 'R2'
         self.write_command(command)
-        response = self.read_command()
-        return(float(response.strip(command).strip('\r\n'))*1e-3)
+        response: str | None = self.read_command()
+        if response is not None:
+            return(float(response.strip(command).strip('\r\n'))*1e-3)
+        else:
+            return 0.00
     
     def read_forward_power(self) -> int:
         """returns the forward power in watts"""
         command = 'RF'
         self.write_command(command)
-        response = self.read_command()
-        return int(response.strip(command).strip('\r\n'))
+        response: str | None = self.read_command()
+        if response is not None:
+            return int(response.strip(command).strip('\r\n'))
+        else:
+            return 0
 
     def read_reflected_power(self) -> int:
         """returns the reflected power in watts"""
         command = 'RR'
         self.write_command(command)
-        response = self.read_command()
-        return int(response.strip(command).strip('\r\n'))
+        response: str | None = self.read_command()
+        if response is not None:
+            return int(response.strip(command).strip('\r\n'))
+        else:
+            return 0
 
     def read_absorbed_power(self) -> float:
         """returns the absorbed power in watts"""
         command = 'RB'
         self.write_command(command)
-        response = self.read_command()
-        return float(response.strip(command).strip('\r\n'))
+        response: str | None = self.read_command()
+        if response is not None:
+            return float(response.strip(command).strip('\r\n'))
+        else:
+            return 0.0
     
     def read_factory_info(self) -> tuple:
         """returns the product serial number, number of reboots, operating hours and enabled hours"""
         command = 'RI'
         self.write_command(command)
-        response = self.read_command()
-        serial_number, reboots, op_hours, enabled_hours, *na = response.split()
-        return serial_number.strip(command), int(reboots), int(op_hours), int(enabled_hours)
+        response: str | None = self.read_command()
+        if response is not None:
+            split_response: list = response.split()
+            serial_number: str = split_response[0]
+            reboots: int = int(split_response[1])
+            op_hours: int = int(split_response[2])
+            enabled_hours: int = int(split_response[3])
+            return serial_number.strip(command), int(reboots), int(op_hours), int(enabled_hours)
+        else:
+            return ('unknown','0','0','0','0')
     
     def enable_RF(self) -> None:
         command = 'ER'

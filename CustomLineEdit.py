@@ -1,5 +1,5 @@
 from PySide6.QtCore import QRegularExpression
-from PySide6.QtGui import QDoubleValidator, QRegularExpressionValidator, QValidator
+from PySide6.QtGui import QDoubleValidator, QRegularExpressionValidator, QValidator, QFocusEvent
 from PySide6.QtWidgets import QLineEdit
 
 class CustomLineEdit(QLineEdit):
@@ -20,8 +20,8 @@ class CustomLineEdit(QLineEdit):
         # Set the numeric limits and decimal precision
         power_double_validator = QDoubleValidator(0.0, 1000.0, 3) # (min value, max value, decimals)
         freq_double_validator = QDoubleValidator(25.00, 42.00, 3)
-        power_double_validator.setNotation(QDoubleValidator.StandardNotation)
-        freq_double_validator.setNotation(QDoubleValidator.StandardNotation)
+        power_double_validator.setNotation(QDoubleValidator.StandardNotation) # type:ignore
+        freq_double_validator.setNotation(QDoubleValidator.StandardNotation) # type:ignore
 
         # Setting all validators: First limit characters, then the check numeric ranges
         self.regex_validator = regex_validator
@@ -29,36 +29,48 @@ class CustomLineEdit(QLineEdit):
         self.freq_double_validator = freq_double_validator
 
     # Currently this does nothing useful but, if self.clear() is uncommented the entry box will clear when selected.
-    def focusInEvent(self, event):
+    def focusInEvent(self, arg__1: QFocusEvent) -> None:
         self.last_input = self.text()  # Store the current text when focused
-        super().focusInEvent(event)  # Call the base class method
+        super().focusInEvent(arg__1)  # Call the base class method
         # self.clear()  # Clear the text when the focus is set on the entry box
 
 
-    def focusOutEvent(self, event):
+    def focusOutEvent(self, arg__1: QFocusEvent) -> None:
         # Check if the box is empty
         if self.text() == '':
             print('restored last input')
             self.setText(self.last_input)  # Restore the last input if empty
-            super().focusOutEvent(event)
+            super().focusOutEvent(arg__1)
             return
         
         # Validate character restrictions first (digits and periods only)
-        regex_state, _, _ = self.regex_validator.validate(self.text(), 0)
-        if regex_state != QValidator.Acceptable:
+        validation_result = self.regex_validator.validate(self.text(), 0)
+        if isinstance(validation_result, tuple) and len(validation_result) == 3:
+            regex_state, _, _ = validation_result
+        else:
+            print('Regex validation did not return the expected tuple structure.')
+            return
+        
+        if regex_state != QValidator.State.Acceptable:
             print('Invalid characters entered. Restoring last input.')
             self.setText(self.last_input)
-            super().focusOutEvent(event)
+            super().focusOutEvent(arg__1)
             return
         
         # Validate numeric range and decimal limits depending on which input box is being edited.
         # if the input is acceptable, update the setting.
         if self.name == 'freq':
-            double_state, _, _ = self.freq_double_validator.validate(self.text(), 0)
-            if double_state != QValidator.Acceptable:
+            validation_result = self.freq_double_validator.validate(self.text(), 0)
+            if isinstance(validation_result, tuple) and len(validation_result) == 3:
+                double_state, _, _ = validation_result
+            else:
+                print('Double validation did not return the expected tuple structure')
+                return
+
+            if double_state != QValidator.State.Acceptable:
                 print('Value out of range or too many decimals.')
                 self.setText(self.last_input)
-                super().focusOutEvent(event)
+                super().focusOutEvent(arg__1)
                 return
             self.main_window.update_setting(
                 input_line=self.main_window.freq_setting_input,
@@ -66,11 +78,17 @@ class CustomLineEdit(QLineEdit):
                 unit='MHz'
             )
         elif self.name == 'power':
-            double_state, _, _ = self.power_double_validator.validate(self.text(), 0)
-            if double_state != QValidator.Acceptable:
+            validation_result = self.power_double_validator.validate(self.text(), 0)
+            if isinstance(validation_result, tuple) and len(validation_result) == 3:
+                double_state, _, _ = validation_result
+            else:
+                print('Double validation did not return the expected tuple structure')
+                return
+            
+            if double_state != QValidator.State.Acceptable:
                 print('Value out of range or too many decimals.')
                 self.setText(self.last_input)
-                super().focusOutEvent(event)
+                super().focusOutEvent(arg__1)
                 return
             self.main_window.update_setting(
                 input_line=self.main_window.power_setting_input,
@@ -78,4 +96,4 @@ class CustomLineEdit(QLineEdit):
                 unit='W'
             )
 
-        super().focusOutEvent(event)  # Call the base class method
+        super().focusOutEvent(arg__1)  # Call the base class method

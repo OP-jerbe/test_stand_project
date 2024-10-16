@@ -11,6 +11,6 @@ rm = pyvisa.ResourceManager()
 vrg_resource = rm.list_resources()[0]
 vrg = rm.open_resource(vrg_resource)
 
-query = vrg.query('RQ')
+query = vrg.query('RQ') # type:ignore
 print(query)
 vrg.close()

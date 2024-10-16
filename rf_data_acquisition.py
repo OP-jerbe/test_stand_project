@@ -16,7 +16,7 @@ class DataAcquisition:
         self.running: bool = False
 
         # Store the latest fetched values
-        self.timestamp: datetime = None
+        self.timestamp: datetime = datetime.now()
         self.forward_power: float = 0.0
         self.refl_power: float = 0.0
         self.absorbed_power: float = 0.0

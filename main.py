@@ -3,7 +3,7 @@ from CustomLineEdit import CustomLineEdit
 from rfgenerator_control import RFGenerator
 from ini_reader import load_config, find_comport_device
 from rf_data_acquisition import DataAcquisition
-from PySide6.QtCore import QEvent, Qt, QTimer
+from PySide6.QtCore import QEvent, Qt, QTimer, QObject
 from PySide6.QtGui import QIcon, QMouseEvent
 from PySide6.QtWidgets import QApplication, QMainWindow, QWidget, QMessageBox
 from PySide6.QtWidgets import QCheckBox, QLabel, QPushButton
@@ -238,13 +238,13 @@ class MainWindow(QMainWindow):
         # Send autotune command when the autotune_button is pressed
         self.autotune_button.clicked.connect(self.autotune_clicked)
 
-    def eventFilter(self, source:QMainWindow, event:QMouseEvent) -> bool:
+    def eventFilter(self, watched: QObject, event: QEvent) -> bool:
         # Capture all mouse button press events
-        if event.type() == QEvent.Type.MouseButtonPress:
-            focused_widget = QApplication.focusWidget() # Get the currently focused widget
+        if isinstance(event, QMouseEvent) and event.type() == QEvent.Type.MouseButtonPress:
+            focused_widget = QApplication.focusWidget()  # Get the currently focused widget
             if focused_widget is not None:
-                focused_widget.clearFocus()  # clear focus from the current focused widget
-        return super().eventFilter(source, event)
+                focused_widget.clearFocus()  # Clear focus from the currently focused widget
+        return super().eventFilter(watched, event)
 
     def on_toggle(self, state:int) -> None:
         if state == 2: # checked

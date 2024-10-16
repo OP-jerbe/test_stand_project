@@ -41,7 +41,7 @@ class MainWindow(QMainWindow):
             self.refresh_rate = 1000  # 1000ms = 1 second
             
             # Data acquisition setup
-            self.data_acquisition = DataAcquisition(self.rfg, self.refresh_rate / 1000) if self.rfg else None
+            self.data_acquisition = DataAcquisition(self.rfg, self.refresh_rate / 1000) #if self.rfg else None
             self.data_acquisition.start()
 
             # Timer to update the GUI with data from the RF device
@@ -71,8 +71,8 @@ class MainWindow(QMainWindow):
         # Confirm the user wants to exit the application.
         reply = QMessageBox.question(self, 'Confirmation',
                                      'Are you sure you want to close the window?',
-                                     QMessageBox.Yes | QMessageBox.No, QMessageBox.No)
-        if reply == QMessageBox.Yes:
+                                     QMessageBox.StandardButton.Yes | QMessageBox.StandardButton.No, QMessageBox.StandardButton.No)
+        if reply == QMessageBox.StandardButton.Yes:
             event.accept()
         else:
             event.ignore()
@@ -96,7 +96,7 @@ class MainWindow(QMainWindow):
 
         # Create enable rf switch
         self.enable_switch = QCheckBox('Enable RF       ', self) # spaces are here to fill the checkbox so there is not a dead spot where user cannot click.
-        self.enable_switch.setCursor(Qt.PointingHandCursor)
+        self.enable_switch.setCursor(Qt.CursorShape.PointingHandCursor)
         self.enable_switch.setChecked(False)
         self.enable_switch.stateChanged.connect(self.on_toggle)
         self.enable_switch.setStyleSheet("""
@@ -131,21 +131,21 @@ class MainWindow(QMainWindow):
 
         # Create frequency SETTING labels and input boxes
         self.top_freq_label = QLabel('Frequency (MHz)')
-        self.top_freq_label.setAlignment(Qt.AlignCenter)
+        self.top_freq_label.setAlignment(Qt.AlignmentFlag.AlignCenter)
         self.freq_setting_input = CustomLineEdit(name='freq', main_window=self)
         self.freq_setting_input.setMaxLength(5)
         self.freq_setting_input.setPlaceholderText('Input Freq. Setting')
 
         # Create power SETTING labels and input boxes
         self.top_power_label = QLabel('Power (W)')
-        self.top_power_label.setAlignment(Qt.AlignCenter)
+        self.top_power_label.setAlignment(Qt.AlignmentFlag.AlignCenter)
         self.power_setting_input = CustomLineEdit(name='power', main_window=self)
         self.power_setting_input.setMaxLength(4)
         self.power_setting_input.setPlaceholderText('Input Power Setting')
         
         # Create the autotune button
         self.autotune_button = QPushButton('Autotune')
-        self.autotune_button.setCursor(Qt.PointingHandCursor)
+        self.autotune_button.setCursor(Qt.CursorShape.PointingHandCursor)
 
         def _display_style():
             return """
@@ -240,7 +240,7 @@ class MainWindow(QMainWindow):
 
     def eventFilter(self, source:QMainWindow, event:QMouseEvent) -> bool:
         # Capture all mouse button press events
-        if event.type() == QEvent.MouseButtonPress:
+        if event.type() == QEvent.Type.MouseButtonPress:
             focused_widget = QApplication.focusWidget() # Get the currently focused widget
             if focused_widget is not None:
                 focused_widget.clearFocus()  # clear focus from the current focused widget
@@ -259,6 +259,7 @@ class MainWindow(QMainWindow):
     def update_setting(self, input_line:CustomLineEdit, param:str, unit:str) -> None:
         entered_text: str = input_line.text() # Get text from CustomLineEdit
         num: float = float(entered_text)  # Validate that the input is a float
+        num_as_str: str = ''
         if not self.simulation:
             # Code to run if connected to RF generator
             if param == 'Frequency':

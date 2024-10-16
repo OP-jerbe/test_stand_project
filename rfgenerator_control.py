@@ -11,6 +11,7 @@ class RFGenerator():
         self.lock = threading.Lock()
     
     def set_rf_device(self, rf_device_type, resource_name):
+        device = None
         accepted_devices = ['VRG']
         # The first conditional statement is here to add RF generator types in the future
         if rf_device_type in accepted_devices:
@@ -19,6 +20,9 @@ class RFGenerator():
         else:
             raise ValueError(f'Unknown RF device type: {rf_device_type}. Accepted devices: {', '.join(accepted_devices)}')
 
+        if device is None:
+            raise RuntimeError('Device class could not be imported')
+        
         self.rf_device = device(resource_name)
         
     def ping_device(self):

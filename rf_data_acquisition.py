@@ -4,7 +4,7 @@ import time # Used to introduce delays between data fetches.
 from datetime import datetime # Used to capture timestamps for the data.
 
 class DataAcquisition:
-    def __init__(self, rf_generator, interval=1):
+    def __init__(self, rf_generator, interval: float=1) -> None:
         """
         Initialize the DataAcquisition class.
 
@@ -25,7 +25,7 @@ class DataAcquisition:
         # Background thread for fetching data
         self.thread = None
 
-    def start(self):
+    def start(self) -> None:
         """
         Start the data acquisition process.
         """
@@ -34,7 +34,7 @@ class DataAcquisition:
             self.thread = threading.Thread(target=self._run)
             self.thread.start()
 
-    def stop(self):
+    def stop(self) -> None:
         """
         Stop the data acquisition process.
         """
@@ -42,7 +42,7 @@ class DataAcquisition:
         if self.thread is not None:
             self.thread.join()
 
-    def _run(self):
+    def _run(self) -> None:
         """
         Run the data acquisition loop in the background.
         """
@@ -50,7 +50,7 @@ class DataAcquisition:
             self._fetch_data()
             time.sleep(self.interval)
 
-    def _fetch_data(self):
+    def _fetch_data(self) -> None:
         """
         Fetch data from the RF generator and update the internal state.
         """

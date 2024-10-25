@@ -33,7 +33,7 @@ class DataAcquisition:
             self.running = True
             self.thread = threading.Thread(target=self._run)
             self.thread.start()
-            self.rf_generator.ping_device()
+            self.rf_generator.enable() ################################### Not sure about this
 
     def stop(self) -> None:
         """

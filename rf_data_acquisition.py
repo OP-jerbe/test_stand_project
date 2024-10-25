@@ -33,6 +33,7 @@ class DataAcquisition:
             self.running = True
             self.thread = threading.Thread(target=self._run)
             self.thread.start()
+            self.rf_generator.ping_device()
 
     def stop(self) -> None:
         """
@@ -61,7 +62,7 @@ class DataAcquisition:
             self.timestamp = datetime.now()
             self.forward_power = self.rf_generator.get_forward_power()
             self.reflected_power = self.rf_generator.get_refl_power()
-            self.absorbed_power = self.forward_power - self.refl_power
+            self.absorbed_power = self.rf_generator.get_absorbed_power()
             self.frequency = self.rf_generator.get_frequency()
 
         except Exception as e:

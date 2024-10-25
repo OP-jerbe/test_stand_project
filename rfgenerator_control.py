@@ -8,6 +8,7 @@ class RFGenerator():
         self.power_setting = 0
         self.forward_power = 0
         self.refl_power = 0
+        self.absorbed_power = 0.0
         self.lock = threading.Lock()
     
     def set_rf_device(self, rf_device_type, resource_name):
@@ -70,11 +71,10 @@ class RFGenerator():
             self.forward_power = self.rf_device.read_forward_power()
             return self.forward_power
     
-    def get_absorbed_power(self) -> int:
+    def get_absorbed_power(self) -> float:
         with self.lock:
-            forward_power = self.rf_device.read_forward_power()
-            reflected_power = self.rf_device.read_reflected_power()
-            return forward_power - reflected_power
+            self.absorbed_power = self.rf_device.read_absorbed_power()
+            return self.absorbed_power
 
 ###############################################################################
 ############################# setter methods ##################################

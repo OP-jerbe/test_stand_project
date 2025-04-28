@@ -41,7 +41,7 @@ class MainWindow(QMainWindow):
             self.resource_name = f"ASRL{self.rf_com_port}::INSTR"
             self.rfg = RFGenerator(self.resource_name, self.rf_device)
 
-        except Exception as e:
+        except Exception:
             # print(f'Exception: {e}')
             print("Could not connect to RF device. App in simulation mode.")
             self.simulation = True
@@ -70,7 +70,6 @@ class MainWindow(QMainWindow):
             Update the display with the latest data from the RF device.
             """
             data = self.data_acquisition.get_data()
-            timestamp = data["time"]  # for later use
 
             if self.autotune_flag:
                 self.freq_setting_input.setText(f"{data['frequency']:.2f}")

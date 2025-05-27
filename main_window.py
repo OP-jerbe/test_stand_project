@@ -23,9 +23,9 @@ from rfgenerator_control import RFGenerator
 
 
 class MainWindow(QMainWindow):
-    def __init__(self):
+    def __init__(self, version):
         super().__init__()
-
+        self.version = version
         self.simulation = False
 
         # Install event filter to capture all mouse clicks
@@ -106,9 +106,9 @@ class MainWindow(QMainWindow):
 
     def create_gui(self) -> None:
         if not self.simulation:
-            self.setWindowTitle('VRG Control')
+            self.setWindowTitle(f'VRG Control v{self.version}')
         else:
-            self.setWindowTitle('VRG Control - (simulation)')
+            self.setWindowTitle(f'VRG Control - (simulation) v{self.version}')
 
         root_dir: Path = get_root_dir()
         print(f'{root_dir = }')
@@ -323,7 +323,8 @@ class MainWindow(QMainWindow):
 
 if __name__ == '__main__':
     app = QApplication([])
-    window = MainWindow()
+    version = '1.0.0'
+    window = MainWindow(version)
     window.show()
 
     sys.exit(app.exec())

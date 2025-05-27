@@ -4,7 +4,7 @@ from typing import NoReturn
 from PySide6.QtWidgets import QApplication
 
 # from src.gui.main_window import MainWindow
-from main_window import MainWindow
+from src.gui.main_window import MainWindow
 
 
 def run_app() -> NoReturn:

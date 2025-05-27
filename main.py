@@ -16,6 +16,7 @@ from PySide6.QtWidgets import (
 )
 
 from CustomLineEdit import CustomLineEdit
+from helpers.helpers import get_root_dir
 from ini_reader import find_comport_device, load_config
 from rf_data_acquisition import DataAcquisition
 from rfgenerator_control import RFGenerator
@@ -64,12 +65,6 @@ class MainWindow(QMainWindow):
             self.timer.timeout.connect(self.update_display)
             self.timer.start(self.refresh_rate)
 
-    def _get_root_dir(self) -> Path:
-        if getattr(sys, 'frozen', False):  # Check if running from the PyInstaller EXE
-            return Path(getattr(sys, '_MEIPASS', '.'))
-        else:  # Running in a normal Python environment
-            return Path(__file__).resolve().parents[0]
-
     def update_display(self):
         # Only run if a device is connected
         if not self.simulation:
@@ -115,7 +110,7 @@ class MainWindow(QMainWindow):
         else:
             self.setWindowTitle('VRG Control - (simulation)')
 
-        root_dir: Path = self._get_root_dir()
+        root_dir: Path = get_root_dir()
         print(f'{root_dir = }')
         icon_path: str = str(root_dir / 'assets' / 'vrg_icon.ico')
         self.setWindowIcon(QIcon(icon_path))

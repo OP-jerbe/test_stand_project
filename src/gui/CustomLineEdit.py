@@ -9,7 +9,7 @@ from PySide6.QtWidgets import QLineEdit
 
 
 class CustomLineEdit(QLineEdit):
-    def __init__(self, name: str, main_window, *args, **kwargs):
+    def __init__(self, name: str, main_window, *args, **kwargs) -> None:
         super().__init__(*args, **kwargs)
 
         # Set attributes

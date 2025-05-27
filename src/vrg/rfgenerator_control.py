@@ -2,7 +2,7 @@ import threading
 
 
 class RFGenerator:
-    def __init__(self, resource_name, rf_device_type=None):
+    def __init__(self, resource_name, rf_device_type=None) -> None:
         self.set_rf_device(rf_device_type, resource_name)
         self.enabled = False
         self.freq = 0
@@ -12,13 +12,13 @@ class RFGenerator:
         self.absorbed_power = 0.0
         self.lock = threading.Lock()
 
-    def set_rf_device(self, rf_device_type, resource_name):
+    def set_rf_device(self, rf_device_type, resource_name) -> None:
         device = None
         accepted_devices = ['VRG']
         # The first conditional statement is here to add RF generator types in the future
         if rf_device_type in accepted_devices:
             if rf_device_type == 'VRG':
-                from src.vrg.vrg_api import VRG as device
+                from ..vrg.vrg_api import VRG as device
         else:
             raise ValueError(
                 f'Unknown RF device type: {rf_device_type}. Accepted devices: {", ".join(accepted_devices)}'
@@ -29,21 +29,21 @@ class RFGenerator:
 
         self.rf_device = device(resource_name)
 
-    def ping_device(self):
+    def ping_device(self) -> str | None:
         with self.lock:
             return self.rf_device.ping()
 
-    def enable(self):
+    def enable(self) -> None:
         with self.lock:
             self.rf_device.enable_RF()
             self.enabled = True
 
-    def disable(self):
+    def disable(self) -> None:
         with self.lock:
             self.rf_device.disable_RF()
             self.enabled = False
 
-    def close(self):
+    def close(self) -> None:
         with self.lock:
             self.rf_device.close()
 
@@ -83,14 +83,14 @@ class RFGenerator:
     ############################# setter methods ##################################
     ###############################################################################
 
-    def set_frequency(self, freq: float):
+    def set_frequency(self, freq: float) -> None:
         with self.lock:
             self.rf_device.set_freq(freq)
 
-    def auto_tune(self):
+    def auto_tune(self) -> None:
         with self.lock:
             self.rf_device.autotune()
 
-    def set_power(self, power: int):
+    def set_power(self, power: int) -> None:
         with self.lock:
             self.rf_device.set_rf_power(power)

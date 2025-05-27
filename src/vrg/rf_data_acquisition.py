@@ -1,10 +1,13 @@
-import traceback # Used for printing stack traces in case of exceptions.
-import threading # Used to run the data acquisition process in a separate thread
-import time # Used to introduce delays between data fetches.
-from datetime import datetime # Used to capture timestamps for the data.
+import threading  # Used to run the data acquisition process in a separate thread
+import time  # Used to introduce delays between data fetches.
+import traceback  # Used for printing stack traces in case of exceptions.
+from datetime import datetime  # Used to capture timestamps for the data.
+
+from ..vrg.rfgenerator_control import RFGenerator
+
 
 class DataAcquisition:
-    def __init__(self, rf_generator, interval: float=1) -> None:
+    def __init__(self, rf_generator: RFGenerator, interval: float = 1) -> None:
         """
         Initialize the DataAcquisition class.
 
@@ -33,7 +36,7 @@ class DataAcquisition:
             self.running = True
             self.thread = threading.Thread(target=self._run)
             self.thread.start()
-            self.rf_generator.enable() ################################### Not sure about this
+            self.rf_generator.enable()  ################################### Not sure about this
 
     def stop(self) -> None:
         """
@@ -81,5 +84,5 @@ class DataAcquisition:
             'forward_power': self.forward_power,
             'reflected_power': self.reflected_power,
             'absorbed_power': self.absorbed_power,
-            'frequency': self.frequency
+            'frequency': self.frequency,
         }

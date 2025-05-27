@@ -16,10 +16,11 @@ from PySide6.QtWidgets import (
 )
 
 from helpers.helpers import get_root_dir
-from src.gui.CustomLineEdit import CustomLineEdit
-from src.ini_reader import find_comport_device, load_config
-from src.vrg.rf_data_acquisition import DataAcquisition
-from src.vrg.rfgenerator_control import RFGenerator
+
+from ..ini_reader import find_comport_device, load_config
+from ..vrg.rf_data_acquisition import DataAcquisition
+from ..vrg.rfgenerator_control import RFGenerator
+from .CustomLineEdit import CustomLineEdit
 
 
 class MainWindow(QMainWindow):

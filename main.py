@@ -1,4 +1,5 @@
 import sys
+from pathlib import Path
 
 from PySide6.QtCore import QEvent, QObject, Qt, QTimer
 from PySide6.QtGui import QIcon, QMouseEvent
@@ -30,20 +31,20 @@ class MainWindow(QMainWindow):
         self.installEventFilter(self)
 
         # Handle ini file and load parameters
-        self.ini_file: str = "hyperionTestStandControl.ini"
+        self.ini_file: str = 'hyperionTestStandControl.ini'
         self.config_data = load_config(self.ini_file)
         self.rf_device, self.rf_com_port = find_comport_device(
-            self.config_data, "RFGenerator"
+            self.config_data, 'RFGenerator'
         )
         self.autotune_flag: bool = False
 
         try:
-            self.resource_name = f"ASRL{self.rf_com_port}::INSTR"
+            self.resource_name = f'ASRL{self.rf_com_port}::INSTR'
             self.rfg = RFGenerator(self.resource_name, self.rf_device)
 
         except Exception:
             # print(f'Exception: {e}')
-            print("Could not connect to RF device. App in simulation mode.")
+            print('Could not connect to RF device. App in simulation mode.')
             self.simulation = True
 
         self.create_gui()
@@ -63,6 +64,12 @@ class MainWindow(QMainWindow):
             self.timer.timeout.connect(self.update_display)
             self.timer.start(self.refresh_rate)
 
+    def _get_root_dir(self) -> Path:
+        if getattr(sys, 'frozen', False):  # Check if running from the PyInstaller EXE
+            return Path(getattr(sys, '_MEIPASS', '.'))
+        else:  # Running in a normal Python environment
+            return Path(__file__).resolve().parents[0]
+
     def update_display(self):
         # Only run if a device is connected
         if not self.simulation:
@@ -72,20 +79,20 @@ class MainWindow(QMainWindow):
             data = self.data_acquisition.get_data()
 
             if self.autotune_flag:
-                self.freq_setting_input.setText(f"{data['frequency']:.2f}")
+                self.freq_setting_input.setText(f'{data["frequency"]:.2f}')
                 self.autotune_flag = False
 
-            self.forward_power_display.setText(f"{data['forward_power']:.0f} W")
-            self.reflected_power_display.setText(f"{data['reflected_power']:.1f} W")
-            self.absorbed_power_display.setText(f"{data['absorbed_power']:.0f} W")
-            self.frequency_display.setText(f"{data['frequency']:.2f} MHz")
+            self.forward_power_display.setText(f'{data["forward_power"]:.0f} W')
+            self.reflected_power_display.setText(f'{data["reflected_power"]:.1f} W')
+            self.absorbed_power_display.setText(f'{data["absorbed_power"]:.0f} W')
+            self.frequency_display.setText(f'{data["frequency"]:.2f} MHz')
 
     def closeEvent(self, event):
         # Confirm the user wants to exit the application.
         reply = QMessageBox.question(
             self,
-            "Confirmation",
-            "Are you sure you want to close the window?",
+            'Confirmation',
+            'Are you sure you want to close the window?',
             QMessageBox.StandardButton.Yes | QMessageBox.StandardButton.No,
             QMessageBox.StandardButton.No,
         )
@@ -104,16 +111,20 @@ class MainWindow(QMainWindow):
 
     def create_gui(self) -> None:
         if not self.simulation:
-            self.setWindowTitle("VRG Control")
+            self.setWindowTitle('VRG Control')
         else:
-            self.setWindowTitle("VRG Control - (simulation)")
-        self.setWindowIcon(QIcon("vrg_icon.ico"))
+            self.setWindowTitle('VRG Control - (simulation)')
+
+        root_dir: Path = self._get_root_dir()
+        print(f'{root_dir = }')
+        icon_path: str = str(root_dir / 'assets' / 'vrg_icon.ico')
+        self.setWindowIcon(QIcon(icon_path))
 
         self.setFixedSize(450, 280)
 
         # Create enable rf switch
         self.enable_switch = QCheckBox(
-            "Enable RF       ", self
+            'Enable RF       ', self
         )  # spaces are here to fill the checkbox so there is not a dead spot where user cannot click.
         self.enable_switch.setCursor(Qt.CursorShape.PointingHandCursor)
         self.enable_switch.setChecked(False)
@@ -148,21 +159,21 @@ class MainWindow(QMainWindow):
         """)
 
         # Create frequency SETTING labels and input boxes
-        self.top_freq_label = QLabel("Frequency (MHz)")
+        self.top_freq_label = QLabel('Frequency (MHz)')
         self.top_freq_label.setAlignment(Qt.AlignmentFlag.AlignCenter)
-        self.freq_setting_input = CustomLineEdit(name="freq", main_window=self)
+        self.freq_setting_input = CustomLineEdit(name='freq', main_window=self)
         self.freq_setting_input.setMaxLength(5)
-        self.freq_setting_input.setPlaceholderText("Input Freq. Setting")
+        self.freq_setting_input.setPlaceholderText('Input Freq. Setting')
 
         # Create power SETTING labels and input boxes
-        self.top_power_label = QLabel("Power (W)")
+        self.top_power_label = QLabel('Power (W)')
         self.top_power_label.setAlignment(Qt.AlignmentFlag.AlignCenter)
-        self.power_setting_input = CustomLineEdit(name="power", main_window=self)
+        self.power_setting_input = CustomLineEdit(name='power', main_window=self)
         self.power_setting_input.setMaxLength(4)
-        self.power_setting_input.setPlaceholderText("Input Power Setting")
+        self.power_setting_input.setPlaceholderText('Input Power Setting')
 
         # Create the autotune button
-        self.autotune_button = QPushButton("Autotune")
+        self.autotune_button = QPushButton('Autotune')
         self.autotune_button.setCursor(Qt.CursorShape.PointingHandCursor)
 
         def _display_style():
@@ -178,17 +189,17 @@ class MainWindow(QMainWindow):
             """
 
         # Create labels for displaying power and frequency OUTPUTS
-        self.forward_power_label = QLabel(" Forward Power")
-        self.forward_power_display = QLabel("0 W")
+        self.forward_power_label = QLabel(' Forward Power')
+        self.forward_power_display = QLabel('0 W')
         self.forward_power_display.setStyleSheet(_display_style())
-        self.reflected_power_label = QLabel(" Reflected Power")
-        self.reflected_power_display = QLabel("0 W")
+        self.reflected_power_label = QLabel(' Reflected Power')
+        self.reflected_power_display = QLabel('0 W')
         self.reflected_power_display.setStyleSheet(_display_style())
-        self.absorbed_power_label = QLabel(" Absorbed Power")
-        self.absorbed_power_display = QLabel("0 W")
+        self.absorbed_power_label = QLabel(' Absorbed Power')
+        self.absorbed_power_display = QLabel('0 W')
         self.absorbed_power_display.setStyleSheet(_display_style())
-        self.frequency_label = QLabel(" Frequency")
-        self.frequency_display = QLabel("0 MHz")
+        self.frequency_label = QLabel(' Frequency')
+        self.frequency_display = QLabel('0 MHz')
         self.frequency_display.setStyleSheet(_display_style())
 
         # Set up layout
@@ -274,48 +285,48 @@ class MainWindow(QMainWindow):
 
     def on_toggle(self, state: int) -> None:
         if state == 2:  # checked
-            print("RF Enabled")  # replace this with command to enable
+            print('RF Enabled')  # replace this with command to enable
             if not self.simulation:
                 self.rfg.enable()
         else:  # unchecked
-            print("RF Disabled")  # replace this with command to disable
+            print('RF Disabled')  # replace this with command to disable
             if not self.simulation:
                 self.rfg.disable()
 
     def update_setting(self, input_line: CustomLineEdit, param: str, unit: str) -> None:
         entered_text: str = input_line.text()  # Get text from CustomLineEdit
         num: float = float(entered_text)  # Validate that the input is a float
-        num_as_str: str = ""
+        num_as_str: str = ''
         if not self.simulation:
             # Code to run if connected to RF generator
-            if param == "Frequency":
-                num_as_str: str = f"{num:.2f}"
+            if param == 'Frequency':
+                num_as_str: str = f'{num:.2f}'
                 input_line.setText(num_as_str)
                 self.rfg.set_frequency(
                     num
                 )  # tell RF generator to set the frequency to num
-            elif param == "Power":
-                num_as_str: str = f"{int(num)}"
+            elif param == 'Power':
+                num_as_str: str = f'{int(num)}'
                 input_line.setText(num_as_str)
                 self.rfg.set_power(
                     int(num)
                 )  # tell RF generator to set the frequency to num
         else:
             # Code to run if in simulation mode
-            if param == "Frequency":
-                num_as_str: str = f"{num:.2f}"
-            elif param == "Power":
-                num_as_str: str = f"{int(num)}"
+            if param == 'Frequency':
+                num_as_str: str = f'{num:.2f}'
+            elif param == 'Power':
+                num_as_str: str = f'{int(num)}'
             input_line.setText(num_as_str)  # Set text of the input box
 
     def autotune_clicked(self) -> None:
         if not self.simulation:
             self.autotune_flag = True
             self.rfg.auto_tune()
-        print("Autotuned!")
+        print('Autotuned!')
 
 
-if __name__ == "__main__":
+if __name__ == '__main__':
     app = QApplication([])
     window = MainWindow()
     window.show()

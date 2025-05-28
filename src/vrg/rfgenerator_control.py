@@ -1,33 +1,33 @@
 import threading
+from threading import Lock
 
 
 class RFGenerator:
-    def __init__(self, resource_name, rf_device_type=None) -> None:
+    def __init__(self, resource_name: str, rf_device_type: str | None = None) -> None:
         self.set_rf_device(rf_device_type, resource_name)
-        self.enabled = False
-        self.freq = 0
-        self.power_setting = 0
-        self.forward_power = 0
-        self.refl_power = 0
-        self.absorbed_power = 0.0
-        self.lock = threading.Lock()
+        self.enabled: bool = False
+        self.freq: float = 0
+        self.power_setting: int = 0
+        self.forward_power: int = 0
+        self.refl_power: int = 0
+        self.absorbed_power: float = 0.0
+        self.lock: Lock = threading.Lock()
 
-    def set_rf_device(self, rf_device_type, resource_name) -> None:
-        device = None
+    def set_rf_device(self, rf_device_type: str | None, resource_name: str) -> None:
         accepted_devices = ['VRG']
-        # The first conditional statement is here to add RF generator types in the future
-        if rf_device_type in accepted_devices:
-            if rf_device_type == 'VRG':
-                from ..vrg.vrg_api import VRG as device
-        else:
+
+        if rf_device_type not in accepted_devices:
             raise ValueError(
                 f'Unknown RF device type: {rf_device_type}. Accepted devices: {", ".join(accepted_devices)}'
             )
 
-        if device is None:
-            raise RuntimeError('Device class could not be imported')
+        if rf_device_type == 'VRG':
+            from ..vrg.vrg_api import VRG as device
 
-        self.rf_device = device(resource_name)
+            self.rf_device = device(resource_name)
+
+        if rf_device_type is None:
+            raise RuntimeError('Device class could not be imported')
 
     def ping_device(self) -> str | None:
         with self.lock:

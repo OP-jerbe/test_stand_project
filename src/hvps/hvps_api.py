@@ -7,6 +7,7 @@ class HVPS:
         self.port = port
         self.timeout = timeout
         self.sock = None
+        self._channels = ('BM', 'EX', 'L1', 'L2', 'L3', 'L4', 'SL')
 
     def connect(self) -> None:
         """Establishes a TCP connection to the HVPS"""
@@ -41,15 +42,54 @@ class HVPS:
         except socket.error as e:
             raise ConnectionError(f'Socket communication error {e}')
 
-    def set_voltage(self, voltage: float) -> str:
-        """Sets the voltage of the HVPS"""
-        query = f'SET_VOLTAGE {voltage}'
-        response = self.send_query(query)
+    def set_solenoid_current(self, current: str) -> str | None:
+        """Sets the solenoid current. Max current is 3.0 A"""
+        num = float(current)
+        current = f'{num:.2f}'
+        command = f'STSLT00{current}'
+        response = self.send_query(command)
+        print(f'Solenoid current set to: {response}')
+
+    def set_voltage(self, channel: str, voltage: str) -> str:
+        """Sets the voltage of the specified channel in the HVPS"""
+        if channel not in self._channels:
+            raise ValueError(
+                f'"{channel}" is not a valid channel. Valid channels: {self._channels}'
+            )
+        command_prefix = f'ST{channel}T'
+
+        if '-' in voltage:
+            sign = '-'
+            voltage = voltage.replace('-', '')
+        else:
+            sign = '+'
+            voltage = voltage.replace('+', '')
+
+        voltage = voltage.zfill(5)
+
+        command = f'{command_prefix}{sign}{voltage}'
+        response = self.send_query(command)
         print(f'Response: {response}')
         return response
 
-    def get_voltage(self) -> str:
-        "Queries the current voltage of the HVPS"
-        response = self.send_query('GET_VOLTAGE')
-        print(f'Current voltage: {response}')
+    def get_voltage(self, channel: str) -> str:
+        "Queries the current voltage of a channel in the HVPS"
+        if channel not in self._channels:
+            raise ValueError(
+                f'"{channel}" is not a valid channel. Valid channels: {self._channels}'
+            )
+        command = f'RD{channel}V'
+        response = self.send_query(command)
+        print(f'Current {channel} voltage: {response}')
+        return response
+
+    def get_current(self, channel: str) -> str:
+        "Queries the current electric-current of a channel in the HVPS"
+        if channel not in self._channels:
+            raise ValueError(
+                f'"{channel}" is not a valid channel. Valid channels: {self._channels}'
+            )
+        command = f'RD{channel}C'
+        response = self.send_query(command)
+        print(f'Current {channel} current: {response}')
         return response

@@ -14,7 +14,7 @@ class DataAcquisition:
         :param rf_generator: An instance of the RFGenerator class (or similar device).
         :param interval: Time interval (in seconds) between data fetches.
         """
-        self.rf_generator = rf_generator
+        self.rf_generator: RFGenerator = rf_generator
         self.interval: float = interval
         self.running: bool = False
 

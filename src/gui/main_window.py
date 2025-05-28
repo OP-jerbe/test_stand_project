@@ -35,13 +35,13 @@ class MainWindow(QMainWindow):
         # Handle ini file and load parameters
         self.ini_file: str = 'hyperionTestStandControl.ini'
         self.config_data = load_config(self.ini_file)
-        self.rf_device, self.rf_com_port = find_comport_device(
-            self.config_data, 'RFGenerator'
-        )
+        rf_ini: tuple[str, str] = find_comport_device(self.config_data, 'RFGenerator')
+        self.rf_device: str = rf_ini[0]
+        self.rf_com_port: str = rf_ini[1]
         self.autotune_flag: bool = False
 
         try:
-            self.resource_name = f'ASRL{self.rf_com_port}::INSTR'
+            self.resource_name: str = f'ASRL{self.rf_com_port}::INSTR'
             self.rfg = RFGenerator(self.resource_name, self.rf_device)
 
         except Exception:

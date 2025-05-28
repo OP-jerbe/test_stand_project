@@ -1,31 +1,35 @@
+from typing import cast
+
 import pyvisa
+from pyvisa.resources import MessageBasedResource
 
 
 class VRG:
     def __init__(
         self, resource_name: str
-    ) -> None:  # probably set the resource name in .ini file
+    ) -> None:  # example resource name:'ASRLCOM6::INSTR'
         self.rm = pyvisa.ResourceManager('@py')
-        self.instrument = self.rm.open_resource(resource_name)
+        self.instrument = cast(
+            MessageBasedResource, self.rm.open_resource(resource_name)
+        )
 
         # Get the valid frequency range in MHz
-
         self.min_tune_freq = self.read_min_tune_freq()
         self.max_tune_freq = self.read_max_tune_freq()
         self.max_power_setting = 1000
 
     def query_command(self, command) -> None:
-        self.instrument.query(command)  # type:ignore
+        self.instrument.query(command)
 
     def write_command(self, command) -> None:
-        self.instrument.write(command)  # type:ignore
+        self.instrument.write(command)
 
     def write_raw_command(self, command) -> None:
-        self.instrument.write_raw(command)  # type:ignore
+        self.instrument.write_raw(command)
 
     def read_command(self) -> str | None:
         try:
-            response: str = self.instrument.read()  # type:ignore
+            response: str = self.instrument.read()
             print(f'Received response: {response}')  # Debugging info
             return response
         except pyvisa.VisaIOError as e:
@@ -202,7 +206,7 @@ class VRG:
 # print(vrg.query('RQ')) # Read Frequency returns "RQ40650" for 40.65 MHz
 # print(vrg.query('RO')) # Read Power Setting returns "RO0800" for 800 W
 # print(vrg.query('R1')) # Read Min tune frequency returns "R125000"
-# print(vrg.query('R2')) # Read Max tune frequency retunrs "R242000"
+# print(vrg.query('R2')) # Read Max tune frequency returns "R242000"
 # print(vrg.query('RF')) # Read Forward Power returns "RF0000" when not enabled
 # print(vrg.query('RR')) # Read Reflected Power returns "RF0000" when not enabled
 # print(vrg.query('RB')) # Read Absorbed Power returns "RB0000.1" when not enabled

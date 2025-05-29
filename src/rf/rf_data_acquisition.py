@@ -3,7 +3,7 @@ import time  # Used to introduce delays between data fetches.
 import traceback  # Used for printing stack traces in case of exceptions.
 from datetime import datetime  # Used to capture timestamps for the data.
 
-from ..vrg.rfgenerator_control import RFGenerator
+from ..rf.rfgenerator_control import RFGenerator
 
 
 class DataAcquisition:

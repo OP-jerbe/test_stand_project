@@ -21,7 +21,7 @@ class RFGenerator:
             )
 
         if rf_device_type == 'VRG':
-            from ..vrg.vrg_api import VRG as device
+            from ..rf.vrg_api import VRG as device
 
             self.rf_device = device(resource_name)
 

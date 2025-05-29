@@ -18,8 +18,8 @@ from PySide6.QtWidgets import (
 from helpers.helpers import get_root_dir
 
 from ..ini_reader import find_comport_device, load_config
-from ..vrg.rf_data_acquisition import DataAcquisition
-from ..vrg.rfgenerator_control import RFGenerator
+from ..rf.rf_data_acquisition import DataAcquisition
+from ..rf.rfgenerator_control import RFGenerator
 from .CustomLineEdit import CustomLineEdit
 
 

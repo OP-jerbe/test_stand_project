@@ -20,8 +20,8 @@ class DataAcquisition:
 
         # Store the latest fetched values
         self.timestamp: datetime = datetime.now()
-        self.forward_power: float = 0.0
-        self.refl_power: float = 0.0
+        self.forward_power: int = 0
+        self.refl_power: int = 0
         self.absorbed_power: float = 0.0
         self.frequency: float = 0.0
 
@@ -62,17 +62,17 @@ class DataAcquisition:
             return
 
         try:
-            self.timestamp = datetime.now()
-            self.forward_power = self.rf_generator.get_forward_power()
-            self.reflected_power = self.rf_generator.get_refl_power()
-            self.absorbed_power = self.rf_generator.get_absorbed_power()
-            self.frequency = self.rf_generator.get_frequency()
+            self.timestamp: datetime = datetime.now()
+            self.forward_power: int = self.rf_generator.get_forward_power()
+            self.reflected_power: int = self.rf_generator.get_refl_power()
+            self.absorbed_power: float = self.rf_generator.get_absorbed_power()
+            self.frequency: float = self.rf_generator.get_frequency()
 
         except Exception as e:
             traceback.print_exc()
             print(f'\nError while fetching data: {e}\n')
 
-    def get_data(self) -> dict:
+    def get_data(self) -> dict[str, str | int | float]:
         """
         Get the latest fetched data.
 

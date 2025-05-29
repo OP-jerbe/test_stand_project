@@ -3,8 +3,17 @@ from typing import Literal
 
 Channels = Literal['BM', 'EX', 'L1', 'L2', 'L3', 'L4', 'SL']
 
+NAKS = {
+    'NAK': 'No Error',
+    'NAK0': 'No Error',
+    'NAK1': 'Invalid Command',
+    'NAK2': 'Invalid Parameter',
+    'NAK3': 'Session Expired',
+    'NAK4': 'Time Out',
+}
 
-class HVPS:
+
+class HVPSv3:
     def __init__(
         self,
         ip: str,
@@ -192,4 +201,11 @@ class HVPS:
         command = f'ST{channel}WEA0000'
         response = self.send_query(command)
         print(f'disable_wobble response: "{response}"')
+        return response
+
+    def get_state(self) -> str:
+        """Gets the enable state of the HV and solenoid"""
+        command = 'RDSTA'
+        response = self.send_query(command)
+        print(f'get_state response: "{response}"')
         return response

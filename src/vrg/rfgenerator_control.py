@@ -1,5 +1,4 @@
 import threading
-from threading import Lock
 
 
 class RFGenerator:
@@ -11,7 +10,7 @@ class RFGenerator:
         self.forward_power: int = 0
         self.refl_power: int = 0
         self.absorbed_power: float = 0.0
-        self.lock: Lock = threading.Lock()
+        self.lock = threading.Lock()
 
     def set_rf_device(self, rf_device_type: str | None, resource_name: str) -> None:
         accepted_devices = ['VRG']

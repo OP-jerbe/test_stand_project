@@ -35,9 +35,11 @@ class MainWindow(QMainWindow):
         # Handle ini file and load parameters
         self.ini_file: str = 'hyperionTestStandControl.ini'
         self.config_data = load_config(self.ini_file)
-        rf_ini: tuple[str, str] = find_comport_device(self.config_data, 'RFGenerator')
-        self.rf_device: str = rf_ini[0]
-        self.rf_com_port: str = rf_ini[1]
+        self.rf_device: str
+        self.rf_com_port: str
+        self.rf_device, self.rf_comport = find_comport_device(
+            self.config_data, 'RFGenerator'
+        )
         self.autotune_flag: bool = False
 
         try:
@@ -112,7 +114,6 @@ class MainWindow(QMainWindow):
             self.setWindowTitle(f'VRG Control - (simulation) v{self.version}')
 
         root_dir: Path = get_root_dir()
-        print(f'{root_dir = }')
         icon_path: str = str(root_dir / 'assets' / 'vrg_icon.ico')
         self.setWindowIcon(QIcon(icon_path))
 

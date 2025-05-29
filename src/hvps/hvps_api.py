@@ -1,13 +1,30 @@
 import socket
+from typing import Literal
+
+Channels = Literal['BM', 'EX', 'L1', 'L2', 'L3', 'L4', 'SL']
 
 
 class HVPS:
-    def __init__(self, ip: str, port: str, timeout: float = 5.0) -> None:
+    def __init__(
+        self,
+        ip: str,
+        port: str,
+        timeout: float = 5.0,
+        occupied_channels: tuple[Channels, ...] = (
+            'BM',
+            'EX',
+            'L1',
+            'L2',
+            'L3',
+            'L4',
+            'SL',
+        ),
+    ) -> None:
         self.ip = ip
         self.port = port
         self.timeout = timeout
         self.sock = None
-        self._channels = ('BM', 'EX', 'L1', 'L2', 'L3', 'L4', 'SL')
+        self.occupied_channels = occupied_channels
 
     def connect(self) -> None:
         """Establishes a TCP connection to the HVPS"""
@@ -23,7 +40,7 @@ class HVPS:
     def disconnect(self) -> None:
         """Closes the socket connection"""
         if self.sock:
-            self.sock.close()
+            self.sock.close()  # if this doesn't work send "DSCON" command to disconnect.
             print('Disconnected from HVPS')
             self.sock = None
 
@@ -31,19 +48,32 @@ class HVPS:
         """Sends a command to the HVPS and returns the response"""
         if not self.sock:
             raise ConnectionError('Socket is not connected')
+        if not query.endswith('\n'):
+            query += '\n'
 
         try:
-            if not query.endswith('/n'):
-                query += '\n'
             self.sock.sendall(query.encode())
-
             response = self.sock.recv(1024)
             return response.decode().strip()
+
         except socket.error as e:
             raise ConnectionError(f'Socket communication error {e}')
 
     def set_solenoid_current(self, current: str) -> str | None:
-        """Sets the solenoid current. Max current is 3.0 A"""
+        """
+        Sets the solenoid current. Max current is 3.0 A.
+        Command must be STSLT00n.nn. So input must be converted to ensure the n.nn format.
+        """
+
+        ##### LOGIC #####
+        # Check to make sure solenoid is installed in the HVPS.
+        # Convert the current argument to a float to make sure input has a decimal point.
+        # Convert the float back to a string with two decimal places.
+        # Input the current value into the command.
+
+        if 'SL' not in self.occupied_channels:
+            return
+
         num = float(current)
         current = f'{num:.2f}'
         command = f'STSLT00{current}'
@@ -52,10 +82,23 @@ class HVPS:
 
     def set_voltage(self, channel: str, voltage: str) -> str:
         """Sets the voltage of the specified channel in the HVPS"""
-        if channel not in self._channels:
+
+        ##### LOGIC #####
+        # Check to make sure the channel is installed into the HVPS
+        # Disallow setting the solenoid voltage.
+        # Set the prefix of the command.
+        # Get the sign used to set the voltage then remove it from the voltage string.
+        # With the sign removed, pad the front of the string with zeros so voltage has 5 characters.
+        # Put together the command with the prefix, sign, and voltage setting.
+        # Send the query then print and return the response.
+
+        if channel not in self.occupied_channels:
             raise ValueError(
-                f'"{channel}" is not a valid channel. Valid channels: {self._channels}'
+                f'"{channel}" is not a valid channel. Valid channels: {self.occupied_channels}'
             )
+        if channel == 'SL':
+            raise ValueError('"SL" is not a valid channel for setting voltage.')
+
         command_prefix = f'ST{channel}T'
 
         if '-' in voltage:
@@ -66,7 +109,6 @@ class HVPS:
             voltage = voltage.replace('+', '')
 
         voltage = voltage.zfill(5)
-
         command = f'{command_prefix}{sign}{voltage}'
         response = self.send_query(command)
         print(f'Response: {response}')
@@ -74,9 +116,9 @@ class HVPS:
 
     def get_voltage(self, channel: str) -> str:
         "Queries the current voltage of a channel in the HVPS"
-        if channel not in self._channels:
+        if channel not in self.occupied_channels:
             raise ValueError(
-                f'"{channel}" is not a valid channel. Valid channels: {self._channels}'
+                f'"{channel}" is not a valid channel. Valid channels: {self.occupied_channels}'
             )
         command = f'RD{channel}V'
         response = self.send_query(command)
@@ -85,11 +127,69 @@ class HVPS:
 
     def get_current(self, channel: str) -> str:
         "Queries the current electric-current of a channel in the HVPS"
-        if channel not in self._channels:
+        if channel not in self.occupied_channels:
             raise ValueError(
-                f'"{channel}" is not a valid channel. Valid channels: {self._channels}'
+                f'"{channel}" is not a valid channel. Valid channels: {self.occupied_channels}'
             )
         command = f'RD{channel}C'
         response = self.send_query(command)
         print(f'Current {channel} current: {response}')
+        return response
+
+    def enable_high_voltage(self) -> str:
+        """Enables high voltage to be turned on"""
+        command = 'STHV1'
+        response = self.send_query(command)
+        print('High Voltage Enabled!')
+        return response
+
+    def disable_high_voltage(self) -> str:
+        """Turns off high voltage"""
+        command = 'STHV0'
+        response = self.send_query(command)
+        print('High voltage disabled.')
+        return response
+
+    def enable_solenoid_current(self) -> str:
+        """Enables the solenoid current to be turned on"""
+        command = 'STSL1'
+        response = self.send_query(command)
+        print('Solenoid current enabled.')
+        return response
+
+    def disable_solenoid_current(self) -> str:
+        """Turns off solenoid current."""
+        command = 'STSL0'
+        response = self.send_query(command)
+        print('Solenoid current disabled.')
+        return response
+
+    def enable_wobble(self, channel: str, amplitude: str) -> str | None:
+        """Enables wobbling of EX, L1, L2, L3, or L4 channels. Acceptable amplitude values: 0-999"""
+
+        valid_channels = [s for s in self.occupied_channels if s not in ('BM', 'SL')]
+        if channel not in self.occupied_channels:
+            raise ValueError(
+                f'"{channel}" is not a valid channel. Valid channels: {valid_channels}'
+            )
+
+        amplitude = amplitude.zfill(3)
+
+        command = f'ST{channel}WE1{amplitude}'
+        response = self.send_query(command)
+        print(f'Wobbling enabled on {channel}. Response: {response}')
+        return response
+
+    def disable_wobble(self, channel: str) -> str | None:
+        """Disables wobbling"""
+
+        valid_channels = [s for s in self.occupied_channels if s not in ('BM', 'SL')]
+        if channel not in self.occupied_channels:
+            raise ValueError(
+                f'"{channel}" is not a valid channel. Valid channels: {valid_channels}'
+            )
+
+        command = f'ST{channel}WE0000'
+        response = self.send_query(command)
+        print(f'Wobbling disabled on {channel}. Response: {response}')
         return response

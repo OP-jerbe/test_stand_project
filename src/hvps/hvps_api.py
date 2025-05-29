@@ -21,7 +21,7 @@ class HVPS:
         ),
     ) -> None:
         self.ip = ip
-        self.port = port
+        self.port = int(port)
         self.timeout = timeout
         self.sock = None
         self.occupied_channels = occupied_channels
@@ -78,7 +78,7 @@ class HVPS:
         current = f'{num:.2f}'
         command = f'STSLT00{current}'
         response = self.send_query(command)
-        print(f'Solenoid current set to: {response}')
+        print(f'set_solenoid_current response: "{response}"')
 
     def set_voltage(self, channel: str, voltage: str) -> str:
         """Sets the voltage of the specified channel in the HVPS"""
@@ -111,7 +111,7 @@ class HVPS:
         voltage = voltage.zfill(5)
         command = f'{command_prefix}{sign}{voltage}'
         response = self.send_query(command)
-        print(f'Response: {response}')
+        print(f'set_voltage response: "{response}"')
         return response
 
     def get_voltage(self, channel: str) -> str:
@@ -122,7 +122,7 @@ class HVPS:
             )
         command = f'RD{channel}V'
         response = self.send_query(command)
-        print(f'Current {channel} voltage: {response}')
+        print(f'get_voltage response: "{response}"')
         return response
 
     def get_current(self, channel: str) -> str:
@@ -133,35 +133,35 @@ class HVPS:
             )
         command = f'RD{channel}C'
         response = self.send_query(command)
-        print(f'Current {channel} current: {response}')
+        print(f'get_current response: "{response}"')
         return response
 
     def enable_high_voltage(self) -> str:
         """Enables high voltage to be turned on"""
         command = 'STHV1'
         response = self.send_query(command)
-        print('High Voltage Enabled!')
+        print(f'enable_high_voltage response: "{response}"')
         return response
 
     def disable_high_voltage(self) -> str:
         """Turns off high voltage"""
         command = 'STHV0'
         response = self.send_query(command)
-        print('High voltage disabled.')
+        print(f'disable_high_voltage response: "{response}"')
         return response
 
     def enable_solenoid_current(self) -> str:
         """Enables the solenoid current to be turned on"""
         command = 'STSL1'
         response = self.send_query(command)
-        print('Solenoid current enabled.')
+        print(f'enable_solenoid response: "{response}"')
         return response
 
     def disable_solenoid_current(self) -> str:
         """Turns off solenoid current."""
         command = 'STSL0'
         response = self.send_query(command)
-        print('Solenoid current disabled.')
+        print(f'disable_solenoid response: "{response}"')
         return response
 
     def enable_wobble(self, channel: str, amplitude: str) -> str | None:
@@ -175,9 +175,9 @@ class HVPS:
 
         amplitude = amplitude.zfill(3)
 
-        command = f'ST{channel}WE1{amplitude}'
+        command = f'ST{channel}WE1A{amplitude}'
         response = self.send_query(command)
-        print(f'Wobbling enabled on {channel}. Response: {response}')
+        print(f'enable_wobble response: "{response}"')
         return response
 
     def disable_wobble(self, channel: str) -> str | None:
@@ -189,7 +189,7 @@ class HVPS:
                 f'"{channel}" is not a valid channel. Valid channels: {valid_channels}'
             )
 
-        command = f'ST{channel}WE0000'
+        command = f'ST{channel}WEA0000'
         response = self.send_query(command)
-        print(f'Wobbling disabled on {channel}. Response: {response}')
+        print(f'disable_wobble response: "{response}"')
         return response
